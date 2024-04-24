@@ -14,18 +14,27 @@ var me; client.onYou( m => me = m );
 client.onAgentsSensing( ( agents ) => {
     const timestamp = Date.now() - start;
     for ( let a of agents ) {
-        // if doesn't exists
+        
+        // Checks if the agent's id is already in belifset
         if ( ! belifset.has( a.id ) )
-            belifset.set( a.id, [] );
+            // If not, it initializes an empty array for that agent.
+            belifset.set( a.id, []);
         a.timestamp = timestamp;
-        // compute direction
+        
+        // Compute direction
         const logs = belifset.get( a.id );
+        
+        // Updates the belifset with the new data including the direction and timestamp.
         if ( logs.length>0 ) {
             var previous = logs[logs.length-1];
-            if ( previous.x < a.x ) a.direction = 'right';
-            else if ( previous.x > a.x ) a.direction = 'left';
-            else if ( previous.y < a.y ) a.direction = 'up';
-            else if ( previous.y > a.y ) a.direction = 'down';
+            if ( previous.x < a.x ) 
+                a.direction = 'right';
+            else if ( previous.x > a.x ) 
+                a.direction = 'left';
+            else if ( previous.y < a.y ) 
+                a.direction = 'up';
+            else if ( previous.y > a.y ) 
+                a.direction = 'down';
             else a.direction = 'none';
         }
 
@@ -33,16 +42,16 @@ client.onAgentsSensing( ( agents ) => {
     }
 
     // compute if within perceiving area
-
     let prettyPrint = Array
     .from(belifset.values())
     .map( (logs) => {
-        const {timestamp,name,x,y,direction} = logs[logs.length-1]
-        const d = dist( me, {x,y} );
-        return `${name}(${direction}, ${d})@${timestamp}:${x},${y}`;
+        const {timestamp,name,x,y,direction,score} = logs[logs.length-1]
+        const distance = dist( me, {x,y} );
+        return `${name}(${direction} with dist ${distance} and score ${score})`;
     }).join(' ');
 
     console.log(prettyPrint);
+
 } )
 
 const dist = (a1,a2) => Math.abs(a1.x-a2.x) + Math.abs(a1.y-a2.y);
