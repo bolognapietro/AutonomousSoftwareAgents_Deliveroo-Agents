@@ -14,6 +14,7 @@ node index.js level_1
 ```
 Now you can open a browser and view the game locally: http://localhost:8080
 
+--- EDIT TOKEN PART ---
 Finally, open another terminal and go to the Project_AutonomousSoftwareAgents folder and launch the main.js file. 
 ```bash
 cd Project_AutonomousSoftwareAgents/Challenge_1
