@@ -13,8 +13,7 @@ var me; client.onYou( m => me = m );
 
 client.onAgentsSensing( ( agents ) => {
     const timestamp = Date.now() - start;
-    for ( let a of agents ) {
-        
+    for ( let a of agents ) {        
         // Checks if the agent's id is already in belifset
         if ( ! belifset.has( a.id ) )
             // If not, it initializes an empty array for that agent.
@@ -45,13 +44,12 @@ client.onAgentsSensing( ( agents ) => {
     let prettyPrint = Array
     .from(belifset.values())
     .map( (logs) => {
-        const {timestamp,name,x,y,direction,score} = logs[logs.length-1]
+        const {name,x,y,direction,score} = logs[logs.length-1]
         const distance = dist( me, {x,y} );
         return `${name}(${direction} with dist ${distance} and score ${score})`;
     }).join(' ');
-
+    
     console.log(prettyPrint);
-
 } )
 
 const dist = (a1,a2) => Math.abs(a1.x-a2.x) + Math.abs(a1.y-a2.y);
