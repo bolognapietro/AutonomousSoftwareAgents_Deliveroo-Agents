@@ -11,7 +11,6 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
 }
 
 
-
 /**
  *! BELIEFSET REVISION FUNCTION
  */
@@ -341,64 +340,142 @@ class GoPickUp extends Plan {
 
 }
 
+async function randomMove( directions ) {
+    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+    return randomDirection;
+}
+
+let directions = [];
+let last_move = ''
+
 class BlindMove extends Plan {
 
     static isApplicableTo ( go_to, x, y ) {
         return go_to == 'go_to';
     }
-
-    async execute ( go_to, x, y ) {
-
-        // Continue the loop until the coordinates of 'me' match the target coordinates (x, y)
-        while (me.x != x || me.y != y) {            
-            // If the plan has been stopped, exit the loop by throwing an exception
-            if (this.stopped) throw ['stopped']; 
+    
+    
+    async execute(go_to, x, y) {
+        while (me.x != x || me.y != y) {
+            if (directions.length == 0)
+                directions = ['left', 'right', 'up', 'down'];
             
+            if (this.stopped) 
+                throw ['stopped'];
+    
             let status_x = false;
             let status_y = false;
             
-            // Attempt to move horizontally towards the target x-coordinate
-            if (x > me.x)
-                status_x = await client.move('right') // if the target x-coordinate is greater, move right
-            else if (x < me.x)
-                status_x = await client.move('left') // if the target x-coordinate is less, move left
-        
-            // Update the coordinates of 'me' if the move was successful
+            //* Horiziontal movement
+            if (x > me.x && directions.includes('right')){
+                status_x = await client.move('right');
+                // this.log('Muovo: ', 'right')
+            }
+            else if (x < me.x && directions.includes('left')){
+                status_x = await client.move('left');
+                // this.log('Muovo: ', 'left')
+            }
+            
             if (status_x) {
                 me.x = status_x.x;
                 me.y = status_x.y;
             }
-        
-            // Check again if the plan has been stopped, and exit if true.
-            if (this.stopped) throw ['stopped']; 
-        
-            // Attempt to move vertically towards the target y-coordinate
-            if (y > me.y)
-                status_y = await client.move('up') // if the target y-coordinate is greater, move up
-            else if (y < me.y)
-                status_y = await client.move('down') // if the target y-coordinate is less, move down
-        
-            // Update the coordinates of 'me' if the move was successful
+    
+            if (this.stopped) 
+                throw ['stopped'];
+            
+            //* Vertical movement
+            if (y > me.y && directions.includes('up')){
+                status_y = await client.move('up');
+                // this.log('Muovo: ', 'up')
+            }
+            else if (y < me.y && directions.includes('down')){
+                status_y = await client.move('down');
+                // this.log('Muovo: ', 'down')
+            }
+    
             if (status_y) {
                 me.x = status_y.x;
                 me.y = status_y.y;
             }
-            
-            // If neither horizontal nor vertical moves were successful, log 'stucked' and throw an exception
+
+            //* If stucked
             if (!status_x && !status_y) {
+
                 this.log('stucked');
-                throw 'stucked';
-            // If the target coordinates are reached, optionally log 'target reached'
-            } else if (me.x == x && me.y == y) {
+                // this.log('Starting direction', directions) 
+                
+                var dir = directions[Math.floor(Math.random() * directions.length)]
+                // this.log('Move: ', dir)
+
+                // Se sono bloccato provo una direzione casuale, se questa direzione ritorna falso la rimuovo dalle possibili direzioni
+                if ( dir == 'right' || dir == 'left'){
+                    status_x = await client.move( dir );
+                    if ( !status_x )
+                        directions = directions.filter(item => item !== dir);
+                    else {
+                        me.x = status_x.x;
+                        me.y = status_x.y;
+                        last_move = dir
+                    }
+                }
+                else if ( dir == 'up' || dir == 'down' ){
+                    status_y = await client.move( dir ); 
+                    if ( !status_y )
+                        directions = directions.filter(item => item !== dir);
+                    else {
+                        me.x = status_y.x;
+                        me.y = status_y.y;
+                        last_move = dir
+                    }
+                }
+                
+                switch (last_move) {
+                    case 'right':
+                        directions = directions.filter(item => item !== 'left');
+                        break;
+                    case 'left':
+                        directions = directions.filter(item => item !== 'right');
+                        break;
+                    case 'up':
+                        directions = directions.filter(item => item !== 'down');
+                        break;
+                    case 'down':
+                        directions = directions.filter(item => item !== 'up');
+                        break;
+                }
+
+                // this.log('\n')
+                // this.log('New direction: ', directions)
+                
+            }    
+            else if ( me.x == x && me.y == y ) {
                 this.log('target reached');
             }
+            else {
+                directions = ['left', 'right', 'up', 'down'];
+            }
+
+            this.log('Direction: ', directions)
         }
-
-        return true;
-
     }
 }
 
 // Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
 planLibrary.push( BlindMove )
+
+
+/**
+ * ANOTHER SIMPLER SOLUTION
+ */
+
+// if (!status_x && !status_y) {
+//     this.log('stucked');
+    
+//     let directions = ['left', 'right']
+//     status_x = await client.move(await randomMove( directions ));
+
+//     directions = ['up', 'down']
+//     status_y = await client.move(await randomMove( directions ));  
+// }    
