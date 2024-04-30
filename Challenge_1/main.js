@@ -15,6 +15,37 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
  *! BELIEFSET REVISION FUNCTION
  */
 
+//* map
+const map = {}
+const deliveryLocations = []; // Initialize an array to store delivery locations
+
+// Event listener triggered when the client senses parcels in the environment.
+client.onMap( ( width, height, coords ) => {
+    map.width = width;
+    map.height = height;
+    map.coords = coords;
+    
+    coords.forEach(coord => {
+        if (coord.delivery) {
+            deliveryLocations.push({x: coord.x, y: coord.y});
+        }
+    });
+
+});
+
+// // Event listener triggered when the client senses parcels in the environment.
+// client.onParcelsSensing( async ( perceived_parcels ) => {
+//     for (const p of perceived_parcels) {
+//         parcels.set( p.id, p); // adds each perceived parcel to the `parcels` map with its ID as the key.
+//     }
+// } );
+
+//* configuration data
+// Event listener triggered when the client receives configuration data.
+client.onConfig( (param) => {
+    // console.log(param); // uncomment this line to log the configuration parameters to the console.
+} );
+
 //* me
 const me = {}; // object: store information about the current agent
 
@@ -25,22 +56,46 @@ client.onYou( ( {id, name, x, y, score} ) => {
     me.x = x;         // sets the user's x-coordinate
     me.y = y;         // sets the user's y-coordinate
     me.score = score; // sets the user's score
-} );
 
+    //* Options generation
+    const options = []  // array to store potential actions.
 
-// Event listener triggered when the client senses parcels in the environment.
-client.onParcelsSensing( async ( perceived_parcels ) => {
-    for (const p of perceived_parcels) {
-        parcels.set( p.id, p); // adds each perceived parcel to the `parcels` map with its ID as the key.
+    deliveryLocations.forEach(location => {
+        let x = location.x;
+        let y = location.y
+
+        let current_d = distance( location, me )
+        // console.log('Delivery pos (', x, y, ') with dist ', current_d)
+
+        if ( current_d < 2 ) {
+            options.push( [ 'go_put_down', x, y ] );
+        }
+    });
+
+    //* Options filtering
+    let best_option;  // store the best action option found.
+    let nearest = Number.MAX_VALUE;  // nearest distance (very large number).
+
+    // Iterates over each generated option.
+    for (const option of options) {  
+        // Checks if the option is a 'go_pick_up' action.
+        if ( option[0] == 'go_put_down' ) { 
+            let [go_put_down, x, y] = option;  // destructures the option array to get the action details.
+            let current_d = distance( {x, y}, me )  // calculates the distance from me to the parcel.
+            // If this parcel is closer than any previously checked parcels,
+            if ( current_d < nearest ) {  
+                best_option = option  // then this option becomes the new best option.
+                nearest = current_d  // and the nearest distance is updated.
+            }
+        }
     }
-} );
 
-//* configuration data
-// Event listener triggered when the client receives configuration data.
-client.onConfig( (param) => {
-    // console.log(param); // uncomment this line to log the configuration parameters to the console.
-} );
+    //* Best option is selected
+    // If a best option was found,
+    if ( best_option )  
+        myAgent.push( best_option )  // it is pushed to the agent's action queue.
 
+} );
 
 
 /**
@@ -108,9 +163,9 @@ class IntentionRevision {
             // Check if there are any intentions in the queue.
             if ( this.intention_queue.length > 0 ) { 
                 console.log( 'intentionRevision.loop', this.intention_queue.map(i=>i.predicate) ); // log the current intentions.
-    
-                const intention = this.intention_queue[0]; // get the first intention from the queue.
-    
+                
+                var intention = this.intention_queue[0]; // get the first intention from the queue.
+                   
                 let id = intention.predicate[2] // extract the ID from the intention's predicate.
                 let p = parcels.get(id) // retrieve the parcel associated with the ID.
                 
@@ -150,7 +205,7 @@ class IntentionRevisionQueue extends IntentionRevision {
         if ( this.intention_queue.find( (i) => i.predicate.join(' ') == predicate.join(' ') ) )
             return;
     
-        console.log( 'IntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
+        console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
         const intention = new Intention( this, predicate ); // create a new Intention object.
         this.intention_queue.push( intention ); // add the new intention to the queue.
     }
@@ -171,7 +226,7 @@ class IntentionRevisionReplace extends IntentionRevision {
             return; 
         }
     
-        console.log( 'IntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
+        console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
         const intention = new Intention( this, predicate ); // create a new Intention object.
         this.intention_queue.push( intention ); // add the new intention to the queue.
         
@@ -183,8 +238,8 @@ class IntentionRevisionReplace extends IntentionRevision {
 
 }
 
-// const myAgent = new IntentionRevisionQueue();
-const myAgent = new IntentionRevisionReplace();
+const myAgent = new IntentionRevisionQueue();
+// const myAgent = new IntentionRevisionReplace();
 myAgent.loop();
 
 class Intention {
@@ -319,6 +374,31 @@ class GoPickUp extends Plan {
 
     async execute ( go_pick_up, x, y ) {
         // Check if the plan has been stopped.
+        if (this.stopped) throw ['stopped']; // if yes, throw an exception to halt execution.
+        // Asynchronously execute a sub-intention to move to the coordinates (x, y).
+        await this.subIntention(['go_to', x, y]); 
+
+        // Check if the plan has been stopped after moving.
+        if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
+        // Call the `pickup` method on the `client` object to perform the pickup action.
+        await client.pickup() 
+
+        // Check once more if the plan has been stopped after picking up.
+        if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
+        
+        // If all actions are completed without the plan being stopped, return true indicating success.
+        return true; 
+    }
+
+}
+
+class GoPutDown extends Plan {
+    static isApplicableTo ( go_put_down, x, y) {
+        return go_put_down == 'go_put_down';
+    }
+
+    async execute ( go_put_down, x, y ) {
+        // Check if the plan has been stopped.
         if (this.stopped) 
             throw ['stopped']; // if yes, throw an exception to halt execution.
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
@@ -328,7 +408,7 @@ class GoPickUp extends Plan {
         if (this.stopped) 
             throw ['stopped']; // If yes, throw an exception to halt execution.
         // Call the `pickup` method on the `client` object to perform the pickup action.
-        await client.pickup() 
+        await client.putdown() 
 
         // Check once more if the plan has been stopped after picking up.
         if (this.stopped) 
@@ -340,6 +420,7 @@ class GoPickUp extends Plan {
 
 }
 
+
 let directions = [];
 let last_move = ''
 
@@ -348,7 +429,6 @@ class BlindMove extends Plan {
     static isApplicableTo ( go_to, x, y ) {
         return go_to == 'go_to';
     }
-    
     
     async execute(go_to, x, y) {
         while (me.x != x || me.y != y) {
@@ -364,11 +444,9 @@ class BlindMove extends Plan {
             //* Horiziontal movement
             if (x > me.x && directions.includes('right')){
                 status_x = await client.move('right');
-                // this.log('Muovo: ', 'right')
             }
             else if (x < me.x && directions.includes('left')){
                 status_x = await client.move('left');
-                // this.log('Muovo: ', 'left')
             }
             
             if (status_x) {
@@ -382,11 +460,9 @@ class BlindMove extends Plan {
             //* Vertical movement
             if (y > me.y && directions.includes('up')){
                 status_y = await client.move('up');
-                // this.log('Muovo: ', 'up')
             }
             else if (y < me.y && directions.includes('down')){
                 status_y = await client.move('down');
-                // this.log('Muovo: ', 'down')
             }
     
             if (status_y) {
@@ -398,12 +474,9 @@ class BlindMove extends Plan {
             if (!status_x && !status_y) {
 
                 this.log('stucked');
-                // this.log('Starting direction', directions) 
-                
-                var dir = directions[Math.floor(Math.random() * directions.length)]
-                // this.log('Move: ', dir)
 
-                // Se sono bloccato provo una direzione casuale, se questa direzione ritorna falso la rimuovo dalle possibili direzioni
+                var dir = directions[Math.floor(Math.random() * directions.length)]
+
                 if ( dir == 'right' || dir == 'left'){
                     status_x = await client.move( dir );
                     if ( !status_x )
@@ -439,26 +512,23 @@ class BlindMove extends Plan {
                         directions = directions.filter(item => item !== 'up');
                         break;
                 }
-
-                // this.log('\n')
-                // this.log('New direction: ', directions)
                 
             }    
             else if ( me.x == x && me.y == y ) {
-                this.log('target reached');
+                // this.log('target reached');
             }
             else {
                 directions = ['left', 'right', 'up', 'down'];
             }
-
-            // this.log('Direction: ', directions)
         }
+        return true;
     }
 }
 
 // Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
 planLibrary.push( BlindMove )
+planLibrary.push( GoPutDown )
 
 
 /**
