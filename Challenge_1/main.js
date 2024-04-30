@@ -340,11 +340,6 @@ class GoPickUp extends Plan {
 
 }
 
-async function randomMove( directions ) {
-    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
-    return randomDirection;
-}
-
 let directions = [];
 let last_move = ''
 
@@ -456,8 +451,7 @@ class BlindMove extends Plan {
                 directions = ['left', 'right', 'up', 'down'];
             }
 
-            this.log('Direction: ', directions)
-            this.log('\n')
+            // this.log('Direction: ', directions)
         }
     }
 }
