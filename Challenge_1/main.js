@@ -10,6 +10,8 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     return dx + dy;
 }
 
+
+
 /**
  *! BELIEFSET REVISION FUNCTION
  */
@@ -26,8 +28,6 @@ client.onYou( ( {id, name, x, y, score} ) => {
     me.score = score; // sets the user's score
 } );
 
-//* parcels
-const parcels = new Map(); // object: store parcels' data, using parcel IDs as keys.
 
 // Event listener triggered when the client senses parcels in the environment.
 client.onParcelsSensing( async ( perceived_parcels ) => {
@@ -44,10 +44,10 @@ client.onConfig( (param) => {
 
 
 
-
 /**
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
+
 // Event listener triggered when parcels are sensed in the environment.
 client.onParcelsSensing( parcels => {
 
@@ -84,6 +84,12 @@ client.onParcelsSensing( parcels => {
 
 } )
 
+/**
+ *! INTENTION
+ */
+
+//* parcels
+const parcels = new Map(); // object: store parcels' data, using parcel IDs as keys.
 
 /**
  *! INTENTION REVISION LOOP
@@ -178,19 +184,10 @@ class IntentionRevisionReplace extends IntentionRevision {
 
 }
 
-
-/**
- *! START INTENTION REVISION LOOP
- */
-
 // const myAgent = new IntentionRevisionQueue();
 const myAgent = new IntentionRevisionReplace();
 myAgent.loop();
 
-
-/**
- *! INTENTION
- */
 class Intention {
 
     #current_plan; // stores the current plan being used to achieve the intention.
@@ -267,9 +264,11 @@ class Intention {
 
 }
 
+
 /**
  *! PLAN LIBRARY
  */
+
 const planLibrary = [];
 
 class Plan {
@@ -315,7 +314,6 @@ class Plan {
 }
 
 class GoPickUp extends Plan {
-
     static isApplicableTo ( go_pick_up, x, y, id ) {
         return go_pick_up == 'go_pick_up';
     }
@@ -401,6 +399,6 @@ class BlindMove extends Plan {
     }
 }
 
-// plan classes are added to plan library 
+// Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
 planLibrary.push( BlindMove )
