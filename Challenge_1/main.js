@@ -457,6 +457,7 @@ class BlindMove extends Plan {
             }
 
             this.log('Direction: ', directions)
+            this.log('\n')
         }
     }
 }
