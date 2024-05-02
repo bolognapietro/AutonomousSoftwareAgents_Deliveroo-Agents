@@ -33,7 +33,7 @@ client.onMap((width, height, coords) => {
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
 
-let parcelCarriedByMe = false;
+ let actual_parcel_id = null;
 
 function findNearestDeliveryPoint(agent) {
     let nearest = deliveryPoints.reduce((prev, curr) => {
@@ -47,10 +47,14 @@ function findNearestDeliveryPoint(agent) {
 // Event listener triggered when parcels are sensed in the environment.
 client.onParcelsSensing(parcels => {
     const options = [];
+    let parcelCarriedByMe = false;
     
     for (const parcel of parcels.values()) {
         if (!parcel.carriedBy) {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
+        }
+        if (parcel.id === actual_parcel_id && parcel.carriedBy === me.id) {
+            parcelCarriedByMe = true;
         }
     }
 
@@ -67,8 +71,9 @@ client.onParcelsSensing(parcels => {
         }
     }
 
-    if (best_option) {
+    if (best_option && actual_parcel_id == null) {
         myAgent.push(best_option);
+        actual_parcel_id = best_option[3];
     }
     else if (parcelCarriedByMe) {
         let deliveryPoint = findNearestDeliveryPoint(me);
@@ -344,7 +349,6 @@ class GoPickUp extends Plan {
         if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = true;
         return true; 
     }
 
@@ -373,7 +377,7 @@ class GoPutDown extends Plan {
             throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = false;
+        actual_parcel_id = null;
         return true; 
     }
 
