@@ -344,7 +344,7 @@ class GoPickUp extends Plan {
         if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = true;
+        parcelCarriedByMe = true5;
         return true; 
     }
 
