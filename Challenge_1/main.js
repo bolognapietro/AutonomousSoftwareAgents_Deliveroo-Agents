@@ -15,38 +15,74 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
  *! BELIEFSET REVISION FUNCTION
  */
 
-//* map
+//* MAP
 const map = {}
-const deliveryLocations = []; // Initialize an array to store delivery locations
+let deliveryPoints = [];
 
 // Event listener triggered when the client senses parcels in the environment.
-client.onMap( ( width, height, coords ) => {
+client.onMap((width, height, coords) => {
     map.width = width;
     map.height = height;
     map.coords = coords;
-    
-    coords.forEach(coord => {
-        if (coord.delivery) {
-            deliveryLocations.push({x: coord.x, y: coord.y});
-        }
-    });
 
+    deliveryPoints = coords.filter(coord => coord.delivery);
 });
 
-// // Event listener triggered when the client senses parcels in the environment.
-// client.onParcelsSensing( async ( perceived_parcels ) => {
-//     for (const p of perceived_parcels) {
-//         parcels.set( p.id, p); // adds each perceived parcel to the `parcels` map with its ID as the key.
-//     }
-// } );
 
-//* configuration data
-// Event listener triggered when the client receives configuration data.
-client.onConfig( (param) => {
-    // console.log(param); // uncomment this line to log the configuration parameters to the console.
-} );
+/**
+ *! OPTIONS GENERATION AND FILTERING FUNCTION
+ */
 
-//* me
+ let actual_parcel_id = null;
+
+function findNearestDeliveryPoint(agent) {
+    let nearest = deliveryPoints.reduce((prev, curr) => {
+        let prevDistance = distance({x: prev.x, y: prev.y}, agent);
+        let currDistance = distance({x: curr.x, y: curr.y}, agent);
+        return (currDistance < prevDistance) ? curr : prev;
+    });
+    return nearest;
+}
+
+// Event listener triggered when parcels are sensed in the environment.
+client.onParcelsSensing(parcels => {
+    const options = [];
+    let parcelCarriedByMe = false;
+    
+    for (const parcel of parcels.values()) {
+        if (!parcel.carriedBy) {
+            options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
+        }
+        if (parcel.id === actual_parcel_id && parcel.carriedBy === me.id) {
+            parcelCarriedByMe = true;
+        }
+    }
+
+    let best_option;
+    let nearest = Number.MAX_VALUE;
+    for (const option of options) {
+        if (option[0] === 'go_pick_up') {
+            let [go_pick_up, x, y, id] = option;
+            let current_d = distance({x, y}, me);
+            if (current_d < nearest) {
+                best_option = option;
+                nearest = current_d;
+            }
+        }
+    }
+
+    if (best_option && actual_parcel_id == null) {
+        myAgent.push(best_option);
+        actual_parcel_id = best_option[3];
+    }
+    else if (parcelCarriedByMe) {
+        let deliveryPoint = findNearestDeliveryPoint(me);
+        myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
+    }
+});
+
+
+//* ME
 const me = {}; // object: store information about the current agent
 
 // Event listener triggered when the client receives data about the current agent.
@@ -56,87 +92,7 @@ client.onYou( ( {id, name, x, y, score} ) => {
     me.x = x;         // sets the user's x-coordinate
     me.y = y;         // sets the user's y-coordinate
     me.score = score; // sets the user's score
-
-    //* Options generation
-    const options = []  // array to store potential actions.
-
-    deliveryLocations.forEach(location => {
-        let x = location.x;
-        let y = location.y
-
-        let current_d = distance( location, me )
-
-        if ( current_d < 2 ) {
-            myAgent.push( [ 'go_put_down', x, y ] );
-            console.log('Delivery pos (', x, y, ')')
-        }
-    });
-
-    // //* Options filtering
-    // let best_option;  // store the best action option found.
-    // let nearest = Number.MAX_VALUE;  // nearest distance (very large number).
-
-    // // Iterates over each generated option.
-    // for (const option of options) {  
-    //     // Checks if the option is a 'go_pick_up' action.
-    //     if ( option[0] == 'go_put_down' ) { 
-    //         let [go_put_down, x, y] = option;  // destructures the option array to get the action details.
-    //         let current_d = distance( {x, y}, me )  // calculates the distance from me to the parcel.
-    //         // If this parcel is closer than any previously checked parcels,
-    //         if ( current_d < nearest ) {  
-    //             best_option = option  // then this option becomes the new best option.
-    //             nearest = current_d  // and the nearest distance is updated.
-    //         }
-    //     }
-    // }
-
-    // //* Best option is selected
-    // // If a best option was found,
-    // if ( best_option )  
-    //     myAgent.push( best_option )  // it is pushed to the agent's action queue.
-
 } );
-
-
-/**
- *! OPTIONS GENERATION AND FILTERING FUNCTION
- */
-
-// Event listener triggered when parcels are sensed in the environment.
-client.onParcelsSensing( parcels => {
-
-    //* Options generation
-    const options = []  // array to store potential actions.
-    // Iterates over each parcel sensed.
-    for (const parcel of parcels.values()) {
-        // Checks if the parcel is not currently being carried by any agent.  
-        if ( ! parcel.carriedBy )  
-            options.push( [ 'go_pick_up', parcel.x, parcel.y, parcel.id ] );  // adds a 'go_pick_up' action to the options array.
-        }
-
-    //* Options filtering
-    let best_option;  // store the best action option found.
-    let nearest = Number.MAX_VALUE;  // nearest distance (very large number).
-    // Iterates over each generated option.
-    for (const option of options) {  
-        // Checks if the option is a 'go_pick_up' action.
-        if ( option[0] == 'go_pick_up' ) { 
-            let [go_pick_up, x, y, id] = option;  // destructures the option array to get the action details.
-            let current_d = distance( {x, y}, me )  // calculates the distance from me to the parcel.
-            // If this parcel is closer than any previously checked parcels,
-            if ( current_d < nearest ) {  
-                best_option = option  // then this option becomes the new best option.
-                nearest = current_d  // and the nearest distance is updated.
-            }
-        }
-    }
-
-    //* Best option is selected
-    // If a best option was found,
-    if ( best_option )  
-        myAgent.push( best_option )  // it is pushed to the agent's action queue.
-
-} )
 
 /**
  *! INTENTION
@@ -421,174 +377,87 @@ class GoPutDown extends Plan {
             throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
+        actual_parcel_id = null;
         return true; 
     }
 
 }
 
-
-let directions = [];
-let last_move = ''
-
-class BlindMove extends Plan {
-
-    static isApplicableTo ( go_to, x, y ) {
+class Move extends Plan {
+    static isApplicableTo(go_to, x, y) {
         return go_to == 'go_to';
     }
-    
-    async execute(go_to, x, y) {
-        while (me.x != x || me.y != y) {
-            if (directions.length == 0)
-                directions = ['left', 'right', 'up', 'down'];
-            
-            let status_x = false;
-            let status_y = false;
 
-            //* Horiziontal movement
-            if (this.stopped) 
-                throw ['stopped'];
-            
-            if (x > me.x && directions.includes('right')){
-                status_x = await client.move('right');
+    async execute(go_to, targetX, targetY) {
+        // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
+        const shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map);
+        if (shortestPath !== null) {
+            // Esegui le mosse per raggiungere la particella
+            for (const move of shortestPath) {
+                await client.move(move);
             }
-            else if (x < me.x && directions.includes('left')){
-                status_x = await client.move('left');
-            }
-            
-            if (status_x) {
-                me.x = status_x.x;
-                me.y = status_x.y;
-            }
+            return true; // Restituisci true se il percorso è stato completato con successo
+        } else {
+            console.log("Impossibile trovare un percorso per raggiungere la particella.");
+            return false; // Restituisci false se non è possibile trovare un percorso
+        }
+    }
 
-            //* Vertical movement    
-            if (this.stopped) 
-                throw ['stopped'];
-            
-            if (y > me.y && directions.includes('up')){
-                status_y = await client.move('up');
-            }
-            else if (y < me.y && directions.includes('down')){
-                status_y = await client.move('down');
-            }
-    
-            if (status_y) {
-                me.x = status_y.x;
-                me.y = status_y.y;
+    async findShortestPath(agentX, agentY, targetX, targetY, map) {
+        const queue = [{ x: agentX, y: agentY, moves: [] }];
+
+        while (queue.length > 0) {
+            const { x, y, moves } = queue.shift();
+
+            if (x === targetX && y === targetY) {
+                // Hai trovato la particella. Restituisci la sequenza di mosse.
+                return moves;
             }
 
-            //* If stucked (no vertical or horizontal moves)
-            if (!status_x && !status_y) {
-
-                this.log('stucked');
-                // TODO try some moves when the agent is stucked (one solution down)
-
-                var dir = directions[Math.floor(Math.random() * directions.length)]
-
-                if ( dir == 'right' || dir == 'left'){
-                    status_x = await client.move( dir );
-                    if ( !status_x )
-                        directions = directions.filter(item => item !== dir);
-                    else {
-                        me.x = status_x.x;
-                        me.y = status_x.y;
-                        last_move = dir
-                    }
-                }
-                else if ( dir == 'up' || dir == 'down' ){
-                    status_y = await client.move( dir ); 
-                    if ( !status_y )
-                        directions = directions.filter(item => item !== dir);
-                    else {
-                        me.x = status_y.x;
-                        me.y = status_y.y;
-                        last_move = dir
-                    }
-                }
-
-                switch (last_move) {
-                    case 'right':
-                        directions = directions.filter(item => item !== 'left');
-                        break;
-                    case 'left':
-                        directions = directions.filter(item => item !== 'right');
-                        break;
-                    case 'up':
-                        directions = directions.filter(item => item !== 'down');
-                        break;
-                    case 'down':
-                        directions = directions.filter(item => item !== 'up');
-                        break;
-                }
-                
-            }    
-            else if ( me.x == x && me.y == y ) {
-                // this.log('target reached');
-            }
-            else {
-                directions = ['left', 'right', 'up', 'down'];
+            // Espandi i vicini validi
+            const neighbors = this.getValidNeighbors(x, y, map);
+            for (const neighbor of neighbors) {
+                const { newX, newY, move } = neighbor;
+                const newMoves = [...moves, move];
+                queue.push({ x: newX, y: newY, moves: newMoves });
             }
         }
-        return true;
+
+        // Se non è possibile raggiungere la particella, restituisci null
+        return null;
+    }
+
+    getValidNeighbors(x, y, map, visited) {
+        const neighbors = [];
+        const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
+
+        for (const [dx, dy, move] of moves) {
+            const newX = x + dx;
+            const newY = y + dy;
+            if (this.isValidPosition(newX, newY, map)) {
+                neighbors.push({ newX, newY, move });
+            }
+        }
+
+        return neighbors;
+    }
+
+    isValidPosition(myX, myY, map) {
+        let found = false;
+        if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
+            map.coords.forEach((row) => {
+                if (row.x === myX && row.y === myY) {
+                    found = true;
+                }
+            });
+        } 
+        return found;
     }
 }
 
+
+
 // Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
-planLibrary.push( BlindMove )
+planLibrary.push( Move )
 planLibrary.push( GoPutDown )
-
-
-/**
- * ONE POSSIBLE SOLUTION
- */
-// var dir = directions[Math.floor(Math.random() * directions.length)]
-
-// if ( dir == 'right' || dir == 'left'){
-//     status_x = await client.move( dir );
-//     if ( !status_x )
-//         directions = directions.filter(item => item !== dir);
-//     else {
-//         me.x = status_x.x;
-//         me.y = status_x.y;
-//         last_move = dir
-//     }
-// }
-// else if ( dir == 'up' || dir == 'down' ){
-//     status_y = await client.move( dir ); 
-//     if ( !status_y )
-//         directions = directions.filter(item => item !== dir);
-//     else {
-//         me.x = status_y.x;
-//         me.y = status_y.y;
-//         last_move = dir
-//     }
-// }
-
-// switch (last_move) {
-//     case 'right':
-//         directions = directions.filter(item => item !== 'left');
-//         break;
-//     case 'left':
-//         directions = directions.filter(item => item !== 'right');
-//         break;
-//     case 'up':
-//         directions = directions.filter(item => item !== 'down');
-//         break;
-//     case 'down':
-//         directions = directions.filter(item => item !== 'up');
-//         break;
-// }
-
-/**
- * ANOTHER SIMPLER SOLUTION
- */
-
-// if (!status_x && !status_y) {
-//     this.log('stucked');
-    
-//     let directions = ['left', 'right']
-//     status_x = await client.move(await randomMove( directions ));
-
-//     directions = ['up', 'down']
-//     status_y = await client.move(await randomMove( directions ));  
-// }    
