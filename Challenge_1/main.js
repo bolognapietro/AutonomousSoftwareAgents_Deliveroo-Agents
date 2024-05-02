@@ -65,35 +65,35 @@ client.onYou( ( {id, name, x, y, score} ) => {
         let y = location.y
 
         let current_d = distance( location, me )
-        // console.log('Delivery pos (', x, y, ') with dist ', current_d)
 
         if ( current_d < 2 ) {
-            options.push( [ 'go_put_down', x, y ] );
+            myAgent.push( [ 'go_put_down', x, y ] );
+            console.log('Delivery pos (', x, y, ')')
         }
     });
 
-    //* Options filtering
-    let best_option;  // store the best action option found.
-    let nearest = Number.MAX_VALUE;  // nearest distance (very large number).
+    // //* Options filtering
+    // let best_option;  // store the best action option found.
+    // let nearest = Number.MAX_VALUE;  // nearest distance (very large number).
 
-    // Iterates over each generated option.
-    for (const option of options) {  
-        // Checks if the option is a 'go_pick_up' action.
-        if ( option[0] == 'go_put_down' ) { 
-            let [go_put_down, x, y] = option;  // destructures the option array to get the action details.
-            let current_d = distance( {x, y}, me )  // calculates the distance from me to the parcel.
-            // If this parcel is closer than any previously checked parcels,
-            if ( current_d < nearest ) {  
-                best_option = option  // then this option becomes the new best option.
-                nearest = current_d  // and the nearest distance is updated.
-            }
-        }
-    }
+    // // Iterates over each generated option.
+    // for (const option of options) {  
+    //     // Checks if the option is a 'go_pick_up' action.
+    //     if ( option[0] == 'go_put_down' ) { 
+    //         let [go_put_down, x, y] = option;  // destructures the option array to get the action details.
+    //         let current_d = distance( {x, y}, me )  // calculates the distance from me to the parcel.
+    //         // If this parcel is closer than any previously checked parcels,
+    //         if ( current_d < nearest ) {  
+    //             best_option = option  // then this option becomes the new best option.
+    //             nearest = current_d  // and the nearest distance is updated.
+    //         }
+    //     }
+    // }
 
-    //* Best option is selected
-    // If a best option was found,
-    if ( best_option )  
-        myAgent.push( best_option )  // it is pushed to the agent's action queue.
+    // //* Best option is selected
+    // // If a best option was found,
+    // if ( best_option )  
+    //     myAgent.push( best_option )  // it is pushed to the agent's action queue.
 
 } );
 
@@ -165,7 +165,13 @@ class IntentionRevision {
                 console.log( 'intentionRevision.loop', this.intention_queue.map(i=>i.predicate) ); // log the current intentions.
                 
                 var intention = this.intention_queue[0]; // get the first intention from the queue.
-                   
+                
+                // this.intention_queue.forEach(async (intent) => {
+                //     if (intent.predicate[0] == 'go_put_down'){
+                //         intention = intent 
+                //     }
+                // });
+
                 let id = intention.predicate[2] // extract the ID from the intention's predicate.
                 let p = parcels.get(id) // retrieve the parcel associated with the ID.
                 
@@ -238,8 +244,8 @@ class IntentionRevisionReplace extends IntentionRevision {
 
 }
 
-const myAgent = new IntentionRevisionQueue();
-// const myAgent = new IntentionRevisionReplace();
+// const myAgent = new IntentionRevisionQueue();
+const myAgent = new IntentionRevisionReplace();
 myAgent.loop();
 
 class Intention {
@@ -435,13 +441,13 @@ class BlindMove extends Plan {
             if (directions.length == 0)
                 directions = ['left', 'right', 'up', 'down'];
             
-            if (this.stopped) 
-                throw ['stopped'];
-    
             let status_x = false;
             let status_y = false;
-            
+
             //* Horiziontal movement
+            if (this.stopped) 
+                throw ['stopped'];
+            
             if (x > me.x && directions.includes('right')){
                 status_x = await client.move('right');
             }
@@ -453,11 +459,11 @@ class BlindMove extends Plan {
                 me.x = status_x.x;
                 me.y = status_x.y;
             }
-    
+
+            //* Vertical movement    
             if (this.stopped) 
                 throw ['stopped'];
             
-            //* Vertical movement
             if (y > me.y && directions.includes('up')){
                 status_y = await client.move('up');
             }
@@ -470,10 +476,11 @@ class BlindMove extends Plan {
                 me.y = status_y.y;
             }
 
-            //* If stucked
+            //* If stucked (no vertical or horizontal moves)
             if (!status_x && !status_y) {
 
                 this.log('stucked');
+                // TODO try some moves when the agent is stucked (one solution down)
 
                 var dir = directions[Math.floor(Math.random() * directions.length)]
 
@@ -497,7 +504,7 @@ class BlindMove extends Plan {
                         last_move = dir
                     }
                 }
-                
+
                 switch (last_move) {
                     case 'right':
                         directions = directions.filter(item => item !== 'left');
@@ -530,6 +537,47 @@ planLibrary.push( GoPickUp )
 planLibrary.push( BlindMove )
 planLibrary.push( GoPutDown )
 
+
+/**
+ * ONE POSSIBLE SOLUTION
+ */
+// var dir = directions[Math.floor(Math.random() * directions.length)]
+
+// if ( dir == 'right' || dir == 'left'){
+//     status_x = await client.move( dir );
+//     if ( !status_x )
+//         directions = directions.filter(item => item !== dir);
+//     else {
+//         me.x = status_x.x;
+//         me.y = status_x.y;
+//         last_move = dir
+//     }
+// }
+// else if ( dir == 'up' || dir == 'down' ){
+//     status_y = await client.move( dir ); 
+//     if ( !status_y )
+//         directions = directions.filter(item => item !== dir);
+//     else {
+//         me.x = status_y.x;
+//         me.y = status_y.y;
+//         last_move = dir
+//     }
+// }
+
+// switch (last_move) {
+//     case 'right':
+//         directions = directions.filter(item => item !== 'left');
+//         break;
+//     case 'left':
+//         directions = directions.filter(item => item !== 'right');
+//         break;
+//     case 'up':
+//         directions = directions.filter(item => item !== 'down');
+//         break;
+//     case 'down':
+//         directions = directions.filter(item => item !== 'up');
+//         break;
+// }
 
 /**
  * ANOTHER SIMPLER SOLUTION
