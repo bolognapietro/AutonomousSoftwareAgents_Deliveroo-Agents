@@ -170,7 +170,7 @@ class IntentionRevision {
         
                     direction_index += Math.floor(Math.random()*4); // change direction if failed going straigth
         
-                    console.log( 'failed move', direction, 'next move', getDirection() )
+                    console.log( 'failed move', direction, 'next move', getDirection_Random(direction_index) )
         
                 } );
             }
