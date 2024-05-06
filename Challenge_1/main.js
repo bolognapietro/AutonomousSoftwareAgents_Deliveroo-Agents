@@ -2,41 +2,13 @@ import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
 
 const client = new DeliverooApi(
     'http://10.196.182.49:8080',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
 )    
-    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU')
-
+    
 function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     const dx = Math.abs( Math.round(x1) - Math.round(x2) )
     const dy = Math.abs( Math.round(y1) - Math.round(y2) )
     return dx + dy;
-}
-
-function getValidNeighbors(x, y, map, visited) {
-    const neighbors = [];
-    const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
-
-    for (const [dx, dy, move] of moves) {
-        const newX = x + dx;
-        const newY = y + dy;
-        if (isValidPosition(newX, newY, map)) {
-            neighbors.push({ newX, newY, move });
-        }
-    }
-
-    return neighbors;
-}
-
-function isValidPosition(myX, myY, map) {
-    let found = false;
-    if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
-        map.coords.forEach((row) => {
-            if (row.x === myX && row.y === myY) {
-                found = true;
-            }
-        });
-    } 
-    return found;
 }
 
 
@@ -45,15 +17,15 @@ function isValidPosition(myX, myY, map) {
  */
 
 //* MAP
-const map = {}
+const mmap = {}
 let deliveryPoints = [];
 
 
 // Event listener triggered when the client senses parcels in the environment.
 client.onMap((width, height, coords) => {
-    map.width = width;
-    map.height = height;
-    map.coords = coords;
+    mmap.width = width;
+    mmap.height = height;
+    mmap.coords = coords;
 
     deliveryPoints = coords.filter(coord => coord.delivery);
 });
@@ -62,12 +34,6 @@ client.onMap((width, height, coords) => {
 /**
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
-
-// function getDirection_Random (direction_index) {
-//     if (direction_index > 3)
-//         direction_index = direction_index % 4;
-//     return [ 'up', 'right', 'down', 'left' ][ direction_index ];
-// }
 
 let parcelCarriedByMe = false;
 
@@ -111,6 +77,54 @@ function findNearestDeliveryPoint(agent) {
     return nearest;
 }
 
+function isValidPosition(myX, myY, map) {
+    let found = false;
+    if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
+        map.coords.forEach((row) => {
+            if (row.x === myX && row.y === myY) {
+                found = true;
+            }
+        });
+    } 
+    return found;
+}
+
+function findPointsAtDistance() {
+    const distance = 5;
+    const points = [];
+
+    // Considera tutte le combinazioni di spostamenti in x e y che sommano a 5
+    for (let dx = -distance; dx <= distance; dx++) {
+        let dy = distance - Math.abs(dx);
+        points.push({x: me.x + dx, y: me.y + dy});
+        if (dy !== 0) { // Aggiungi il punto simmetrico se dy non è zero
+            points.push({x: me.x + dx, y: me.y - dy});
+        }
+    }
+
+    // Filtra i punti per assicurarsi che siano all'interno dei limiti della mappa
+    return points.filter(point => isValidPosition(point.x, point.y, mmap));
+}
+
+//* ME
+const me = {}; // object: store information about the current agent
+
+// Event listener triggered when the client receives data about the current agent.
+client.onYou( ( {id, name, x, y, score} ) => {
+    me.id = id;       // sets the user's ID
+    me.name = name;   // sets the user's name
+    me.x = x;         // sets the user's x-coordinate
+    me.y = y;         // sets the user's y-coordinate
+    me.score = score; // sets the user's score
+} );
+
+const map = new Map()
+client.onTile( ( x, y, delivery ) => {
+    if ( ! map.has(x) )
+        map.set(x, new Map)    
+    map.get(x).set(y, {x, y, delivery})
+} );
+
 // Event listener triggered when parcels are sensed in the environment.
 client.onParcelsSensing(parcels => {
     const options = [];
@@ -142,29 +156,10 @@ client.onParcelsSensing(parcels => {
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else {
-    //     let randomX = Math.floor(Math.random() * map.width);
-    //     let randomY = Math.floor(Math.random() * map.height);
-        const possible_move = getValidNeighbors(me.x, me.y, map);
-        
-        //pick a random element in possible_move
-        const index_random = Math.floor(Math.random() * possible_move.length);
-        
-        myAgent.push(['random_move', possible_move[index_random].newX, possible_move[index_random].newY]);
+        myAgent.push(['go_to', 9, 9]);
     }
 });
 
-
-//* ME
-const me = {}; // object: store information about the current agent
-
-// Event listener triggered when the client receives data about the current agent.
-client.onYou( ( {id, name, x, y, score} ) => {
-    me.id = id;       // sets the user's ID
-    me.name = name;   // sets the user's name
-    me.x = x;         // sets the user's x-coordinate
-    me.y = y;         // sets the user's y-coordinate
-    me.score = score; // sets the user's score
-} );
 
 /**
  *! INTENTION
@@ -465,56 +460,57 @@ class Move extends Plan {
     }
 
     async execute(go_to, targetX, targetY) {
-        // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
-        const shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map);
-        if (shortestPath !== null) {
-            // Esegui le mosse per raggiungere la particella
-            for (const move of shortestPath) {
-                await client.move(move);
+        const target_x = targetX, target_y = targetY;
+        // console.log('go from', init_x, init_y, 'to', target_x, target_y);
+
+        var x = me.x, y = me.y, step = 0;
+
+        while ( x != target_x || y != target_y ) {
+            
+            let begin_step = step;
+
+            if ( target_x > x ){
+                if( map.get(x+1).get(y) ){
+                    await client.move('right');
+                    step++;
+                    ++x;
+                }
             }
-            return true; // Restituisci true se il percorso è stato completato con successo
-        } else {
-            console.log("Impossibile trovare un percorso per raggiungere la particella.");
-            return false; // Restituisci false se non è possibile trovare un percorso
+            else if ( target_x < x ){
+                if( map.get(x-1).get(y) ){
+                    await client.move('left');
+                    step++; 
+                    --x;
+                }
+            }
 
-            // Se non è possibile raggiungere la particella, restituisci false e riprova con un'altra particella
-
+            if ( target_y > y ){
+                if( map.get(x).get(y+1) ){
+                    await client.move('up');
+                    step++;
+                    ++y;
+                }
+            }
+            else if ( target_y < y ){
+                if( map.get(x).get(y-1) ){
+                    await client.move('down');
+                    step++;
+                    --y;
+                }
+            }
+            
+            if ( begin_step == step ) {
+                console.log('stucked')
+                return false;
+                break;
+            }            
+        }
+        if ( x == target_x && y == target_y ) {
+            return true;
         }
     }
 
-    async findShortestPath(agentX, agentY, targetX, targetY, map) {
-        const queue = [{ x: agentX, y: agentY, moves: [] }];
-
-        while (queue.length > 0) {
-            const { x, y, moves } = queue.shift();
-
-            if (x === targetX && y === targetY) {
-                // Hai trovato la particella. Restituisci la sequenza di mosse.
-                return moves;
-            }
-
-            // Espandi i vicini validi
-            const neighbors = getValidNeighbors(x, y, map);
-            for (const neighbor of neighbors) {
-                const { newX, newY, move } = neighbor;
-                const newMoves = [...moves, move];
-                queue.push({ x: newX, y: newY, moves: newMoves });
-            }
-        }
-
-        // Se non è possibile raggiungere la particella, restituisci null
-        return null;
-    }
-}
-
-class RandomMove extends Plan {
-    static isApplicableTo(random_move) {
-        return random_move == 'random_move';
-    }
-    async execute(random_move) {
-        await client.move(random_move)
-        return true;
-    }
+    
 }
 
 
@@ -522,4 +518,3 @@ class RandomMove extends Plan {
 planLibrary.push( GoPickUp )
 planLibrary.push( Move )
 planLibrary.push( GoPutDown )
-planLibrary.push( RandomMove )
