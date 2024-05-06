@@ -1,15 +1,12 @@
 import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
 
+import * as fn from './support_fn.js';
+
 const client = new DeliverooApi(
-    'http://10.196.182.49:8080',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
+    'http://localhost:8080', //'http://10.196.182.49:8080',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
+    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
 )    
-    
-function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
-    const dx = Math.abs( Math.round(x1) - Math.round(x2) )
-    const dy = Math.abs( Math.round(y1) - Math.round(y2) )
-    return dx + dy;
-}
 
 
 /**
@@ -50,61 +47,6 @@ client.onAgentsSensing( ( agents ) => {
     // console.log( position_agents)
 } )
 
-function findNearestDeliveryPoint(agent) {
-    let nearest = deliveryPoints.reduce((prev, curr) => {
-        
-        let prevDistance = distance({x: prev.x, y: prev.y}, agent);
-        let currDistance = distance({x: curr.x, y: curr.y}, agent);
-        
-
-        // console.log("other agent pos", myAgent.pretty )
-        // check if the [prev.x, prev.y] is into other_agent
-
-
-        // if ((other_agent).contains([prev.x, prev.y])){
-        //     occupied[0] = true
-        // }
-        // if ((other_agent).contains([curr.x, curr.y])){
-        //     occupied[1] = true
-        // }
-        // if (occupied[0] && occupied[1]){
-        //     return prevDistance < currDistance ? prev : curr;
-        // }
-        
-        // return (occupied[0]) ? curr : prev;
-        return prevDistance < currDistance ? prev : curr;
-    });
-    return nearest;
-}
-
-function isValidPosition(myX, myY, map) {
-    let found = false;
-    if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
-        map.coords.forEach((row) => {
-            if (row.x === myX && row.y === myY) {
-                found = true;
-            }
-        });
-    } 
-    return found;
-}
-
-function findPointsAtDistance() {
-    const distance = 5;
-    const points = [];
-
-    // Considera tutte le combinazioni di spostamenti in x e y che sommano a 5
-    for (let dx = -distance; dx <= distance; dx++) {
-        let dy = distance - Math.abs(dx);
-        points.push({x: me.x + dx, y: me.y + dy});
-        if (dy !== 0) { // Aggiungi il punto simmetrico se dy non è zero
-            points.push({x: me.x + dx, y: me.y - dy});
-        }
-    }
-
-    // Filtra i punti per assicurarsi che siano all'interno dei limiti della mappa
-    return points.filter(point => isValidPosition(point.x, point.y, mmap));
-}
 
 //* ME
 const me = {}; // object: store information about the current agent
@@ -140,7 +82,7 @@ client.onParcelsSensing(parcels => {
     for (const option of options) {
         if (option[0] === 'go_pick_up') {
             let [go_pick_up, x, y, id] = option;
-            let current_d = distance({x, y}, me);
+            let current_d =fn.distance({x, y}, me);
             if (current_d < nearest) {
                 best_option = option;
                 nearest = current_d;
@@ -152,7 +94,7 @@ client.onParcelsSensing(parcels => {
         myAgent.push(best_option);
     }
     else if (parcelCarriedByMe) {
-        let deliveryPoint = findNearestDeliveryPoint(me);
+        let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else {
@@ -167,8 +109,6 @@ client.onParcelsSensing(parcels => {
 
 //* parcels
 const parcels = new Map(); // object: store parcels' data, using parcel IDs as keys.
-
-var ALREADY_PRINTED = false;
 
 /**
  *! INTENTION REVISION LOOP
@@ -188,7 +128,7 @@ class IntentionRevision {
             // Check if there are any intentions in the queue.
             if ( this.intention_queue.length > 0 ) { 
                 console.log( 'intentionRevision.loop', this.intention_queue.map(i=>i.predicate) ); // log the current intentions.
-                ALREADY_PRINTED = false;
+                
                 var intention = this.intention_queue[0]; // get the first intention from the queue.
                 console.log('intention', intention.predicate);
                 // this.intention_queue.forEach(async (intent) => {
@@ -512,6 +452,7 @@ class Move extends Plan {
 
     
 }
+
 
 
 // Plan classes are added to plan library 
