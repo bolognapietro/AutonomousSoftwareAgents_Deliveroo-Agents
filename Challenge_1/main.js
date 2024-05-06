@@ -1,7 +1,7 @@
 import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
 
 const client = new DeliverooApi(
-    'http://localhost:8080',
+    'http://10.196.182.49:8080',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
 )    
     // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU')
@@ -12,6 +12,33 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     return dx + dy;
 }
 
+function getValidNeighbors(x, y, map, visited) {
+    const neighbors = [];
+    const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
+
+    for (const [dx, dy, move] of moves) {
+        const newX = x + dx;
+        const newY = y + dy;
+        if (isValidPosition(newX, newY, map)) {
+            neighbors.push({ newX, newY, move });
+        }
+    }
+
+    return neighbors;
+}
+
+function isValidPosition(myX, myY, map) {
+    let found = false;
+    if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
+        map.coords.forEach((row) => {
+            if (row.x === myX && row.y === myY) {
+                found = true;
+            }
+        });
+    } 
+    return found;
+}
+
 
 /**
  *! BELIEFSET REVISION FUNCTION
@@ -20,6 +47,7 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
 //* MAP
 const map = {}
 let deliveryPoints = [];
+
 
 // Event listener triggered when the client senses parcels in the environment.
 client.onMap((width, height, coords) => {
@@ -35,19 +63,50 @@ client.onMap((width, height, coords) => {
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
 
-function getDirection_Random (direction_index) {
-    if (direction_index > 3)
-        direction_index = direction_index % 4;
-    return [ 'up', 'right', 'down', 'left' ][ direction_index ];
-}
+// function getDirection_Random (direction_index) {
+//     if (direction_index > 3)
+//         direction_index = direction_index % 4;
+//     return [ 'up', 'right', 'down', 'left' ][ direction_index ];
+// }
 
 let parcelCarriedByMe = false;
 
+const position_agents  = {}
+
+client.onAgentsSensing( ( agents ) => {
+
+    position_agents.x = agents.map( ( {x} ) => {
+        return x
+    } );
+    position_agents.y = agents.map( ( {y} ) => {
+        return y
+    } );
+    // console.log( position_agents)
+} )
+
 function findNearestDeliveryPoint(agent) {
     let nearest = deliveryPoints.reduce((prev, curr) => {
+        
         let prevDistance = distance({x: prev.x, y: prev.y}, agent);
         let currDistance = distance({x: curr.x, y: curr.y}, agent);
-        return (currDistance < prevDistance) ? curr : prev;
+        
+
+        // console.log("other agent pos", myAgent.pretty )
+        // check if the [prev.x, prev.y] is into other_agent
+
+
+        // if ((other_agent).contains([prev.x, prev.y])){
+        //     occupied[0] = true
+        // }
+        // if ((other_agent).contains([curr.x, curr.y])){
+        //     occupied[1] = true
+        // }
+        // if (occupied[0] && occupied[1]){
+        //     return prevDistance < currDistance ? prev : curr;
+        // }
+        
+        // return (occupied[0]) ? curr : prev;
+        return prevDistance < currDistance ? prev : curr;
     });
     return nearest;
 }
@@ -83,9 +142,14 @@ client.onParcelsSensing(parcels => {
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else {
-        let randomX = Math.floor(Math.random() * map.width);
-        let randomY = Math.floor(Math.random() * map.height);
-        myAgent.push(['random_move', randomX, randomY]);
+    //     let randomX = Math.floor(Math.random() * map.width);
+    //     let randomY = Math.floor(Math.random() * map.height);
+        const possible_move = getValidNeighbors(me.x, me.y, map);
+        
+        //pick a random element in possible_move
+        const index_random = Math.floor(Math.random() * possible_move.length);
+        
+        myAgent.push(['random_move', possible_move[index_random].newX, possible_move[index_random].newY]);
     }
 });
 
@@ -153,26 +217,6 @@ class IntentionRevision {
                 });
     
                 this.intention_queue.shift(); // remove the achieved intention from the queue.
-            }
-            else{
-                var direction_index = [ Math.floor(Math.random()*4) ]
-                let direction = [ 'up', 'right', 'down', 'left' ][ (direction_index) % 4 ]
-                await new Promise( (success, reject) => socket.emit('move', getDirection_Random(direction_index), async (status) =>  {
-                    if (status) {
-                
-                        direction_index += [0,1,3][ Math.floor(Math.random()*3) ]; // may change direction but not going back
-                        console.log( 'moved', direction, 'next move', direction_index )
-                        success();
-        
-                    } else reject();
-
-                } ) ).catch( async () => {
-        
-                    direction_index += Math.floor(Math.random()*4); // change direction if failed going straigth
-        
-                    console.log( 'failed move', direction, 'next move', getDirection_Random(direction_index) )
-        
-                } );
             }
             await new Promise( res => setImmediate( res ) ); // postpone the next iteration to allow other operations to proceed.
         }
@@ -420,8 +464,6 @@ class Move extends Plan {
         return go_to == 'go_to';
     }
 
-    
-
     async execute(go_to, targetX, targetY) {
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
         const shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map);
@@ -452,7 +494,7 @@ class Move extends Plan {
             }
 
             // Espandi i vicini validi
-            const neighbors = this.getValidNeighbors(x, y, map);
+            const neighbors = getValidNeighbors(x, y, map);
             for (const neighbor of neighbors) {
                 const { newX, newY, move } = neighbor;
                 const newMoves = [...moves, move];
@@ -463,44 +505,14 @@ class Move extends Plan {
         // Se non è possibile raggiungere la particella, restituisci null
         return null;
     }
-
-    getValidNeighbors(x, y, map, visited) {
-        const neighbors = [];
-        const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
-
-        for (const [dx, dy, move] of moves) {
-            const newX = x + dx;
-            const newY = y + dy;
-            if (this.isValidPosition(newX, newY, map)) {
-                neighbors.push({ newX, newY, move });
-            }
-        }
-
-        return neighbors;
-    }
-
-    isValidPosition(myX, myY, map) {
-        let found = false;
-        if (myX >= 0 && myX < map.width && myY >= 0 && myY < map.height){
-            map.coords.forEach((row) => {
-                if (row.x === myX && row.y === myY) {
-                    found = true;
-                }
-            });
-        } 
-        return found;
-    }
 }
 
 class RandomMove extends Plan {
     static isApplicableTo(random_move) {
         return random_move == 'random_move';
     }
-
     async execute(random_move) {
-        const moves = ['up', 'down', 'left', 'right'];
-        const randomMove = moves[Math.floor(Math.random() * moves.length)];
-        await client.move(randomMove);
+        await client.move(random_move)
         return true;
     }
 }
