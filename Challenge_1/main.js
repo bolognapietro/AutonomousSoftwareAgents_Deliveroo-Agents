@@ -4,8 +4,8 @@ import * as fn from './support_fn.js';
 
 const client = new DeliverooApi(
     'http://localhost:8080', //'http://10.196.182.49:8080',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
-    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
+    /// 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
 )    
 
 
@@ -93,13 +93,13 @@ client.onParcelsSensing(parcels => {
     if (best_option) {
         myAgent.push(best_option);
     }
-    else if (parcelCarriedByMe) {
-        let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints);
-        myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
-    }
-    else {
-        myAgent.push(['go_to', 9, 9]);
-    }
+    // else if (parcelCarriedByMe) {
+    //     let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints);
+    //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
+    // }
+    // else {
+    //     myAgent.push(['go_to', 9, 9]);
+    // }
 });
 
 
@@ -400,54 +400,62 @@ class Move extends Plan {
     }
 
     async execute(go_to, targetX, targetY) {
-        const target_x = targetX, target_y = targetY;
-        // console.log('go from', init_x, init_y, 'to', target_x, target_y);
+        const init_x = me.x, init_y = me.y;
+        const target_x = parseInt(targetX), target_y = parseInt(targetY);
 
-        var x = me.x, y = me.y, step = 0;
+        function search (cost, x, y, previous_tile, action_from_previous) {
 
-        while ( x != target_x || y != target_y ) {
-            
-            let begin_step = step;
-
-            if ( target_x > x ){
-                if( map.get(x+1).get(y) ){
-                    await client.move('right');
-                    step++;
-                    ++x;
-                }
-            }
-            else if ( target_x < x ){
-                if( map.get(x-1).get(y) ){
-                    await client.move('left');
-                    step++; 
-                    --x;
-                }
-            }
-
-            if ( target_y > y ){
-                if( map.get(x).get(y+1) ){
-                    await client.move('up');
-                    step++;
-                    ++y;
-                }
-            }
-            else if ( target_y < y ){
-                if( map.get(x).get(y-1) ){
-                    await client.move('down');
-                    step++;
-                    --y;
-                }
-            }
-            
-            if ( begin_step == step ) {
-                console.log('stucked')
+            if( ! map.has(x) || ! map.get(x).has(y) )
                 return false;
-                break;
-            }            
+            
+            const tile = map.get(x).get(y)
+            if( tile.cost_to_here <= cost)
+                return false;
+            else {
+                tile.cost_to_here = cost;
+                tile.previous_tile = previous_tile;
+                if( action_from_previous )
+                    tile.action_from_previous = action_from_previous;
+            }
+            
+            if ( target_x == x && target_y == y ) {
+                console.log('found with cost', cost)
+                // function backward ( tile ) {
+                //     console.log( tile.cost_to_here + ' move ' + tile.action_from_previous + ' ' + tile.x + ',' + tile.y );
+                //     if ( tile.previous_tile ) backward( tile.previous_tile );
+                // }
+                // backward( tile )
+                return true;
+            }
+        
+            let options = new Array(
+                [cost+1, x+1, y, tile, 'right'],
+                [cost+1, x-1, y, tile, 'left'],
+                [cost+1, x, y+1, tile, 'up'],
+                [cost+1, x, y-1, tile, 'down']
+            );
+            options = options.sort( (a, b) => {
+                return fn.distance({x: target_x, y: target_y}, {x: a[1], y: a[2]}) - fn.distance({x: target_x, y: target_y}, {x: b[1], y: b[2]})
+            } )
+        
+            search( ...options[0] )
+            search( ...options[1] )
+            search( ...options[2] )
+            search( ...options[3] )
+            
         }
-        if ( x == target_x && y == target_y ) {
-            return true;
+
+        search(0, init_x, init_y);
+
+        const dest = map.get(target_x).get(target_y);
+        var tile = dest;
+        while (tile.previous_tile) {
+            // console.log(tile.cost_to_here + ' move ' + tile.action_from_previous + ' ' + tile.x + ',' + tile.y);
+            await client.move(tile.action_from_previous)
+            tile = tile.previous_tile;
         }
+
+        return true; // or handle the return based on your logic
     }
 
     
