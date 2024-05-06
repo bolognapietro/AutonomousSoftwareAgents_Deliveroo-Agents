@@ -2,7 +2,9 @@ import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
 
 const client = new DeliverooApi(
     'http://localhost:8080',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU')
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
+)    
+    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU')
 
 function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     const dx = Math.abs( Math.round(x1) - Math.round(x2) )
@@ -32,6 +34,12 @@ client.onMap((width, height, coords) => {
 /**
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
+
+function getDirection_Random (direction_index) {
+    if (direction_index > 3)
+        direction_index = direction_index % 4;
+    return [ 'up', 'right', 'down', 'left' ][ direction_index ];
+}
 
 let parcelCarriedByMe = false;
 
@@ -74,6 +82,11 @@ client.onParcelsSensing(parcels => {
         let deliveryPoint = findNearestDeliveryPoint(me);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
+    else {
+        let randomX = Math.floor(Math.random() * map.width);
+        let randomY = Math.floor(Math.random() * map.height);
+        myAgent.push(['random_move', randomX, randomY]);
+    }
 });
 
 
@@ -96,6 +109,8 @@ client.onYou( ( {id, name, x, y, score} ) => {
 //* parcels
 const parcels = new Map(); // object: store parcels' data, using parcel IDs as keys.
 
+var ALREADY_PRINTED = false;
+
 /**
  *! INTENTION REVISION LOOP
  */
@@ -114,9 +129,9 @@ class IntentionRevision {
             // Check if there are any intentions in the queue.
             if ( this.intention_queue.length > 0 ) { 
                 console.log( 'intentionRevision.loop', this.intention_queue.map(i=>i.predicate) ); // log the current intentions.
-                
+                ALREADY_PRINTED = false;
                 var intention = this.intention_queue[0]; // get the first intention from the queue.
-                
+                console.log('intention', intention.predicate);
                 // this.intention_queue.forEach(async (intent) => {
                 //     if (intent.predicate[0] == 'go_put_down'){
                 //         intention = intent 
@@ -139,12 +154,32 @@ class IntentionRevision {
     
                 this.intention_queue.shift(); // remove the achieved intention from the queue.
             }
+            else{
+                var direction_index = [ Math.floor(Math.random()*4) ]
+                let direction = [ 'up', 'right', 'down', 'left' ][ (direction_index) % 4 ]
+                await new Promise( (success, reject) => socket.emit('move', getDirection_Random(direction_index), async (status) =>  {
+                    if (status) {
+                
+                        direction_index += [0,1,3][ Math.floor(Math.random()*3) ]; // may change direction but not going back
+                        console.log( 'moved', direction, 'next move', direction_index )
+                        success();
+        
+                    } else reject();
+
+                } ) ).catch( async () => {
+        
+                    direction_index += Math.floor(Math.random()*4); // change direction if failed going straigth
+        
+                    console.log( 'failed move', direction, 'next move', getDirection() )
+        
+                } );
+            }
             await new Promise( res => setImmediate( res ) ); // postpone the next iteration to allow other operations to proceed.
         }
     }
 
     // async push ( predicate ) { }
-
+    
     log ( ...args ) {
         console.log( ...args )
     }
@@ -190,6 +225,7 @@ class IntentionRevisionReplace extends IntentionRevision {
         // Stop the last intention if it exists.
         if ( last ) {
             last.stop();
+            console.log( 'IntentionRevisionReplace.stop', last.predicate ); // log the stopping of the last intention.
         }
     }
 
@@ -344,7 +380,7 @@ class GoPickUp extends Plan {
         if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = true5;
+        parcelCarriedByMe = true;
         return true; 
     }
 
@@ -384,6 +420,8 @@ class Move extends Plan {
         return go_to == 'go_to';
     }
 
+    
+
     async execute(go_to, targetX, targetY) {
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
         const shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map);
@@ -396,6 +434,9 @@ class Move extends Plan {
         } else {
             console.log("Impossibile trovare un percorso per raggiungere la particella.");
             return false; // Restituisci false se non è possibile trovare un percorso
+
+            // Se non è possibile raggiungere la particella, restituisci false e riprova con un'altra particella
+
         }
     }
 
@@ -451,9 +492,22 @@ class Move extends Plan {
     }
 }
 
+class RandomMove extends Plan {
+    static isApplicableTo(random_move) {
+        return random_move == 'random_move';
+    }
+
+    async execute(random_move) {
+        const moves = ['up', 'down', 'left', 'right'];
+        const randomMove = moves[Math.floor(Math.random() * moves.length)];
+        await client.move(randomMove);
+        return true;
+    }
+}
 
 
 // Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
 planLibrary.push( Move )
 planLibrary.push( GoPutDown )
+planLibrary.push( RandomMove )
