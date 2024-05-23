@@ -77,11 +77,6 @@ client.onParcelsSensing(parcels => {
         // console.log( "Options: ", options )
         myAgent.push( options );
     }
-    // else if ( parcelCarriedByMe ) {
-    //     let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints);
-    //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
-    // }
-
 });
 
 /**
@@ -122,9 +117,10 @@ class IntentionRevision {
                 predicate = ['go_put_down', deliveryPoint.x, deliveryPoint.y];
             }
         }    
-
-        // console.log('Predicate: ', predicate);
-
+        if ( predicate === undefined ) {
+            predicate = ['go_to', 5, 4];
+        }
+        
         if (predicate !== undefined) {
             // Check if the intention is already in the queue
             if (this.intention_queue.some(intent => intent.predicate.join(' ') === predicate.join(' '))) {
