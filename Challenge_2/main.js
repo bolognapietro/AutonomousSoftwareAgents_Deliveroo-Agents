@@ -3,15 +3,14 @@ import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
 import * as fn from './support_fn.js';
 import c from "spacy";
 
+// NAME: Autonomous duo
 const client = new DeliverooApi(
     'http://localhost:8080',    // LOCAL IP
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNmNzUwMzM1MjFlIiwibmFtZSI6IkF1dG9ub21vdXNEdW8iLCJpYXQiOjE3MTYzMDIwMzF9.gQ83DK7-GDO5_0vqFpNJ_C1HvHTq2vWPWcAyZQi4g10'  // LOCAL TOKEN
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI0OTBkZjliMmY0IiwibmFtZSI6IkF1dG9ub21vdXMgZHVvIiwiaWF0IjoxNzE5Mjk4NTg1fQ.s2cSu8JIvuBeG5OPcE4MHIyuMqQl9diRuziTXA_kGIo'  // LOCAL TOKEN
 )    
 
-// NAME: Autonomous duo
-
 /**
- *! OPTIONS GENERATION AND FILTERING FUNCTION
+ *! BELIEFS REVISION
  */
 
 let parcelCarriedByMe = false;
@@ -80,7 +79,7 @@ client.onParcelsSensing(parcels => {
 });
 
 /**
- *! INTENTION REVISION LOOP
+ *! INTENTION REVISION
  */
 let old_predicate;
 
@@ -101,13 +100,11 @@ class IntentionRevision {
         let nearest_delivery_pt = Number.MAX_VALUE;
         
         for (const option of options) {
-            if (option[0] === 'go_pick_up') {
-                let [go_pick_up, x, y, id] = option;
-                let current_d = fn.distance({x, y}, me);
-                if (current_d < nearest_parcel) {
-                    predicate = option;
-                    nearest_parcel = current_d;
-                }
+            let [go_pick_up, x, y, id] = option;
+            let current_d = fn.distance({x, y}, me);
+            if (current_d < nearest_parcel) {
+                predicate = option;
+                nearest_parcel = current_d;
             }
         }
         if ( parcelCarriedByMe ) {
