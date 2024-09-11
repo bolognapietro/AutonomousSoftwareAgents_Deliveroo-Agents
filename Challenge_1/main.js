@@ -4,8 +4,8 @@ import * as fn from './support_fn.js';
 
 const client = new DeliverooApi(
     'http://localhost:8080', //'http://10.196.182.49:8080',
-    /// 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkxYzZkYjdlZmIzIiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcxNDgwOTc4N30.hidRA7HV9twyqmREyrKtoLXaFq0f06HgXjex2FDCnZ0'
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM3NDg4ODI1NTQ3IiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcyMjI0MTU5MH0.nXMGK0Av2lW5LodZDD9C2OUj3LkLrcfqvhgB1H9BonM'
+    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
 )    
 
 /**
@@ -13,6 +13,8 @@ const client = new DeliverooApi(
  */
 
 let parcelCarriedByMe = false;
+
+let previus_position = {x: 0, y: 0};
 
 const position_agents  = {}
 
@@ -83,20 +85,46 @@ client.onParcelsSensing(parcels => {
         }
     }
 
+    // Filtra le opzioni che contengono 'go_pick_up'
+    let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
+
+    // Ordina le opzioni filtrate in base alla distanza
+    goPickUpOptions.sort((a, b) => {
+        let distanceA = fn.distance({ x: a[1], y: a[2] }, me);
+        let distanceB = fn.distance({ x: b[1], y: b[2] }, me);
+        return distanceA - distanceB;
+    });
+
+    // Esegui il ciclo for sulle opzioni ordinate
+    for (const option of goPickUpOptions) {
+        let [go_pick_up, x, y, id] = option;
+        let current_d = fn.distance({ x, y }, me);
+        if (current_d < nearest) {
+            best_option = option;
+            nearest = current_d;
+        }
+    }
+
     if ( parcelCarriedByMe ) {
-        let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints);
+        let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints, false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else if ( best_option ) {
         myAgent.push(best_option);
     }
-    else if ( me.x != 9 && me.y != 9 ) {
-        // const random_pos = [[map.width/4, map.width/4], [map.width/4, 3*map.width/4], [3*map.width/4, map.width/4], [3*map.width/4, 3*map.width/4]];
-        // const randomIndex = Math.floor(Math.random() * random_pos.length);
-        // const selectedPosition = random_pos[randomIndex];
-        // myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
-        myAgent.push(['go_to', 9, 9]);            
-    }
+    // else{
+    //     console.log('No parcels to pick up');
+    //     let try_to_move = fn.findNearestDeliveryPoint(me, deliveryPoints, true);
+    //     myAgent.push(['go_to', try_to_move.x, try_to_move.y]);
+    // }
+
+    // else if ( me.x != 9 && me.y != 9 ) {
+    //     // const random_pos = [[map.width/4, map.width/4], [map.width/4, 3*map.width/4], [3*map.width/4, map.width/4], [3*map.width/4, 3*map.width/4]];
+    //     // const randomIndex = Math.floor(Math.random() * random_pos.length);
+    //     // const selectedPosition = random_pos[randomIndex];
+    //     // myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
+    //     myAgent.push(['go_to', 9, 9]);            
+    // }
 });
 
 
@@ -111,6 +139,10 @@ client.onParcelsSensing(parcels => {
 class IntentionRevision {
 
     #intention_queue = new Array(); // private field to store the queue of intentions.
+
+    #lastMoveTime = Date.now();
+    #moveInterval = 5000;
+    #first = false;
     
     //* Getter method to access the private intention queue.
     get intention_queue () {
@@ -140,9 +172,52 @@ class IntentionRevision {
                     });
         
                 this.intention_queue.shift(); // Rimuovi l'intenzione usata usando splice()
+                this.#lastMoveTime = Date.now();
+            }
+            else {
+                if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
+                    // console.log('No intentions, moving randomly');
+                    this.moveToPreviusPos();
+                    this.#lastMoveTime = Date.now();
+                    this.#first = true;
+                    this.#moveInterval = 3000;
+                }
+                else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
+                    // console.log('No intentions, moving randomly');
+                    this.moveToRandomPos();
+                    this.#lastMoveTime = Date.now();
+                }
             }
             await new Promise(res => setImmediate(res));
         }
+    }
+
+    moveToPreviusPos() {
+        if (this.checkForParcels()) return;
+        myAgent.push(['go_to', previus_position.x, previus_position.y]);
+    }
+
+    moveToRandomPos() {
+        if (this.checkForParcels()) return;
+        const random_pos = [[map.width/4, map.width/4], [map.width/4, 3*map.width/4], [3*map.width/4, map.width/4], [3*map.width/4, 3*map.width/4]];
+        const randomIndex = Math.floor(Math.random() * random_pos.length);
+        const selectedPosition = random_pos[randomIndex];
+        myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
+    }
+
+    checkForParcels() {
+        for (let [id, parcel] of parcels.entries()) {
+            if (!parcel.carriedBy && this.isNearby(parcel)) {
+                myAgent.push(['go_pick_up', parcel.x, parcel.y, id]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isNearby(parcel) {
+        const distance = Math.sqrt((parcel.x - me.x) ** 2 + (parcel.y - me.y) ** 2);
+        return distance <= 1; // Adjust the distance threshold as needed
     }
 
     // async push ( predicate ) { }
@@ -352,6 +427,7 @@ class GoPickUp extends Plan {
         
         // If all actions are completed without the plan being stopped, return true indicating success.
         parcelCarriedByMe = true;
+        previus_position = {x: x, y: y};
         return true; 
     }
 
@@ -387,14 +463,14 @@ class GoPutDown extends Plan {
 }
 
 
-class Move extends Plan {
+class GoTo extends Plan {
     static isApplicableTo(go_to, x, y) {
         return go_to == 'go_to';
     }
 
     async execute(go_to, targetX, targetY) {
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
-        var shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map);
+        var shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map) 
         if (shortestPath !== null) {
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {
@@ -437,6 +513,7 @@ class Move extends Plan {
         return null;
     }
 
+
     getValidNeighbors(x, y, map) {
         const neighbors = [];
         const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
@@ -462,5 +539,5 @@ class Move extends Plan {
 
 // Plan classes are added to plan library 
 planLibrary.push( GoPickUp )
-planLibrary.push( Move )
+planLibrary.push( GoTo )
 planLibrary.push( GoPutDown )

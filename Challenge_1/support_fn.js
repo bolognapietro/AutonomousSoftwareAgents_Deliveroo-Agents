@@ -4,21 +4,22 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     return dx + dy;
 }
 
-function findNearestDeliveryPoint(agent, deliveryPoints, position_agents) {
+
+function findNearestDeliveryPoint(agent, deliveryPoints, bool) { //position_agents
+    if (bool){
+        // if the agent is already on the delivery point, eliminate it from the list
+        deliveryPoints = deliveryPoints.filter((point) => {
+            return point.x !== agent.x || point.y !== agent.y;
+        });
+    }
+
     let nearest = deliveryPoints.reduce((prev, curr) => {
         var unreachable_curr = false;
         var unreachable_prev = false;
         
-        // Check if the delivery point is already taken by another agent
-        for (let i = 0; i < position_agents.length; i++) {
-            if (curr.x === position_agents[i].x && curr.y === position_agents[i].y) {
-                unreachable_curr = true;
-            }
-            if (prev.x === position_agents[i].x && prev.y === position_agents[i].y) {
-                unreachable_prev = true;
-            }
-        }
-        // console.log("unreachable_curr: " + unreachable_curr + " unreachable_prev: " + unreachable_prev);
+        // Check if the delivery point is already taken by another agent  ?
+
+        
         let prevDistance = distance({x: prev.x, y: prev.y}, agent);// unreachable_prev ? Infinity : distance({x: prev.x, y: prev.y}, agent);
         let currDistance = distance({x: curr.x, y: curr.y}, agent); //unreachable_curr ? Infinity : distance({x: curr.x, y: curr.y}, agent);
         //console.log("prevDistance: " + prevDistance + " currDistance: " + currDistance);
