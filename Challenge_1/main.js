@@ -1,22 +1,22 @@
-import { DeliverooApi } from "@unitn-asa/deliveroo-js-client";
-
+import { client } from './client_config.js';
+import Me from './me.js';
 import * as fn from './support_fn.js';
 
-const client = new DeliverooApi(
-    'http://localhost:8080', //'http://10.196.182.49:8080',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM3NDg4ODI1NTQ3IiwibmFtZSI6Im1hcmluYSIsImlhdCI6MTcyMjI0MTU5MH0.nXMGK0Av2lW5LodZDD9C2OUj3LkLrcfqvhgB1H9BonM'
-    // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzODE1MGExNjE0IiwibmFtZSI6InBpZXRybyIsImlhdCI6MTcxMTU1NjQ0MH0.HGuarXnbopYzShTuIwxnA_W4iSDW3U2sWIc8WtPE1aU'
-)    
+
+var me = new Me();
+
+client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent.    
+    me.setInfos( {id, name, x, y, score} );
+    myAgent.me = me;
+} );
 
 /**
  *! OPTIONS GENERATION AND FILTERING FUNCTION
  */
 
-let parcelCarriedByMe = false;
-
-let previus_position = {x: 0, y: 0};
-
 const position_agents  = {}
+
+const previus_position = {x: 0, y: 0};
 
 client.onAgentsSensing( ( agents ) => {
 
@@ -28,19 +28,6 @@ client.onAgentsSensing( ( agents ) => {
     } );
     // console.log( position_agents)
 } )
-
-
-//* ME
-const me = {}; // object: store information about the current agent
-
-// Event listener triggered when the client receives data about the current agent.
-client.onYou( ( {id, name, x, y, score} ) => {
-    me.id = id;       // sets the user's ID
-    me.name = name;   // sets the user's name
-    me.x = x;         // sets the user's x-coordinate
-    me.y = y;         // sets the user's y-coordinate
-    me.score = score; // sets the user's score
-} );
 
 //* MAP
 const map = new Map()
@@ -56,6 +43,8 @@ client.onMap((width, height, coords) => {
 
 //* PARCELS
 const parcels = new Map();
+// let collectedParcels = [];
+
 client.onParcelsSensing( async ( perceived_parcels ) => {
     for (const p of perceived_parcels) {
         parcels.set( p.id, p)
@@ -105,26 +94,13 @@ client.onParcelsSensing(parcels => {
         }
     }
 
-    if ( parcelCarriedByMe ) {
+    if ( myAgent.me.particelsCarried ) {
         let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints, false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else if ( best_option ) {
         myAgent.push(best_option);
     }
-    // else{
-    //     console.log('No parcels to pick up');
-    //     let try_to_move = fn.findNearestDeliveryPoint(me, deliveryPoints, true);
-    //     myAgent.push(['go_to', try_to_move.x, try_to_move.y]);
-    // }
-
-    // else if ( me.x != 9 && me.y != 9 ) {
-    //     // const random_pos = [[map.width/4, map.width/4], [map.width/4, 3*map.width/4], [3*map.width/4, map.width/4], [3*map.width/4, 3*map.width/4]];
-    //     // const randomIndex = Math.floor(Math.random() * random_pos.length);
-    //     // const selectedPosition = random_pos[randomIndex];
-    //     // myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
-    //     myAgent.push(['go_to', 9, 9]);            
-    // }
 });
 
 
@@ -137,6 +113,15 @@ client.onParcelsSensing(parcels => {
  *! INTENTION REVISION LOOP
  */
 class IntentionRevision {
+    #me;
+
+    get me() {
+        return this.#me;
+    }
+
+    set me(value) {
+        this.#me = value;
+    }
 
     #intention_queue = new Array(); // private field to store the queue of intentions.
 
@@ -168,7 +153,7 @@ class IntentionRevision {
         
                 await intention.achieve()
                     .catch(error => {
-                        console.log('Failed intention', ...intention.predicate, 'with error:', ...error)
+                        console.log('Failed intention', ...intention.predicate, 'with error:', error)
                     });
         
                 this.intention_queue.shift(); // Rimuovi l'intenzione usata usando splice()
@@ -426,7 +411,8 @@ class GoPickUp extends Plan {
         if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = true;
+        myAgent.me.particelsCarried = true;
+        // parcelCarriedByMe = true;
         previus_position = {x: x, y: y};
         return true; 
     }
@@ -456,7 +442,8 @@ class GoPutDown extends Plan {
             throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        parcelCarriedByMe = false;
+        myAgent.me.particelsCarried = false;
+        // parcelCarriedByMe = false;
         return true; 
     }
 
