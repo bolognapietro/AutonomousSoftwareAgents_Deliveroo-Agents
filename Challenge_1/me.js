@@ -3,7 +3,7 @@ import { client } from "./client_config.js";
 class Me {
     #numParticelsCarried;
     #particelsCarried;
-    #map_particels;
+    #map_particles;
 
     constructor() {
         this.id = null;
@@ -13,7 +13,7 @@ class Me {
         this.score = null;
         this.#numParticelsCarried = 0;
         this.#particelsCarried = false;
-        this.#map_particels = new Map();
+        this.#map_particles = new Map();
     }
 
     get numParticelsCarried() {
@@ -33,11 +33,19 @@ class Me {
     }
 
     get map_particels() {
-        return this.#map_particels;
+        return this.#map_particles;
     }
 
-    set map_particels(value) {
-        this.#map_particels = value
+    set map_particles(value) {
+        this.#map_particles = value
+    }
+
+    perceiveParticle(id, particle) {
+        this.#map_particles.set(id, particle);
+    }
+
+    getParticleById(id) {
+        return this.#map_particles.get(id);
     }
 
     setInfos({id, name, x, y, score}) {

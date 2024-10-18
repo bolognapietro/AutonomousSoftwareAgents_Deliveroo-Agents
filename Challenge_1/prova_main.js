@@ -19,6 +19,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     let count = 0;
     for (const p of perceived_parcels) {
         parcels.set( p.id, p)
+        me.perceiveParticle(p.id, p); 
         if (p.carriedBy == me.id) {
             count++;
         }

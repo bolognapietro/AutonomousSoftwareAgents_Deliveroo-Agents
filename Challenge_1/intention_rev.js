@@ -41,9 +41,9 @@ class IntentionRevision {
                        
                 if (intention.predicate.length == 4) {
                     let id = intention.predicate[3];
-                    console.log( 'try p: ', this.#me.map_particels.get(id) );
+                    console.log( 'try p: ', this.#me.getParticleById(id) );
 
-                    let p = this.#me.map_particels.get(id)  // .get(id);
+                    let p = this.#me.getParticleById(id)  // .get(id);
 
                     console.log('id:', id, 'p:', p);
                     if (p && p.carriedBy) {
