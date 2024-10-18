@@ -57,4 +57,4 @@ function findPointsAtDistance() {
     return points.filter(point => isValidPosition(point.x, point.y, mmap));
 }
 
-export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance};
+export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance };

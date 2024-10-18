@@ -1,6 +1,6 @@
 import { client } from './client_config.js';
 import Me from './me.js';
-import * as fn from './support_fn.js';
+import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './support_fn.js';
 
 
 var me = new Me();
@@ -66,7 +66,7 @@ client.onParcelsSensing(parcels => {
     for (const option of options) {
         if (option[0] === 'go_pick_up') {
             let [go_pick_up, x, y, id] = option;
-            let current_d =fn.distance({x, y}, me);
+            let current_d = distance({x, y}, me);
             if (current_d < nearest) {
                 best_option = option;
                 nearest = current_d;
@@ -79,15 +79,15 @@ client.onParcelsSensing(parcels => {
 
     // Ordina le opzioni filtrate in base alla distanza
     goPickUpOptions.sort((a, b) => {
-        let distanceA = fn.distance({ x: a[1], y: a[2] }, me);
-        let distanceB = fn.distance({ x: b[1], y: b[2] }, me);
+        let distanceA = distance({ x: a[1], y: a[2] }, me);
+        let distanceB = distance({ x: b[1], y: b[2] }, me);
         return distanceA - distanceB;
     });
 
     // Esegui il ciclo for sulle opzioni ordinate
     for (const option of goPickUpOptions) {
         let [go_pick_up, x, y, id] = option;
-        let current_d = fn.distance({ x, y }, me);
+        let current_d = distance({ x, y }, me);
         if (current_d < nearest) {
             best_option = option;
             nearest = current_d;
@@ -95,7 +95,7 @@ client.onParcelsSensing(parcels => {
     }
 
     if ( myAgent.me.particelsCarried ) {
-        let deliveryPoint = fn.findNearestDeliveryPoint(me, deliveryPoints, false);
+        let deliveryPoint = findNearestDeliveryPoint(me, deliveryPoints, false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else if ( best_option ) {
@@ -254,7 +254,7 @@ class IntentionRevisionReplace extends IntentionRevision {
         // });
         
         // Stop the last intention if it exists.
-        if ( last ) { //&& fn.distance({x: me.x, y: me.y}, {x: last.predicate[1], y: last.predicate[2]}) > fn.distance({x: me.x, y: me.y}, {x: predicate[1], y: predicate[2]})
+        if ( last ) { //&& distance({x: me.x, y: me.y}, {x: last.predicate[1], y: last.predicate[2]}) > distance({x: me.x, y: me.y}, {x: predicate[1], y: predicate[2]})
             last.stop();
             console.log( 'IntentionRevisionReplace.stop', last.predicate ); // log the stopping of the last intention.
         }
@@ -329,7 +329,7 @@ class Intention {
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
-                    this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', ...error); // log any errors encountered during the execution of the plan.
+                    this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', error); // log any errors encountered during the execution of the plan.
                 }
             }
         }
@@ -448,7 +448,6 @@ class GoPutDown extends Plan {
     }
 
 }
-
 
 class GoTo extends Plan {
     static isApplicableTo(go_to, x, y) {

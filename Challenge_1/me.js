@@ -3,6 +3,7 @@ import { client } from "./client_config.js";
 class Me {
     #numParticelsCarried;
     #particelsCarried;
+    #map_particels;
 
     constructor() {
         this.id = null;
@@ -12,6 +13,7 @@ class Me {
         this.score = null;
         this.#numParticelsCarried = 0;
         this.#particelsCarried = false;
+        this.#map_particels = new Map();
     }
 
     get numParticelsCarried() {
@@ -28,6 +30,14 @@ class Me {
 
     set particelsCarried(value) {
         this.#particelsCarried = value;
+    }
+
+    get map_particels() {
+        return this.#map_particels;
+    }
+
+    set map_particels(value) {
+        this.#map_particels = value
     }
 
     setInfos({id, name, x, y, score}) {
