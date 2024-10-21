@@ -317,6 +317,8 @@ class Intention {
     
         // Iterate through each plan class available in the planLibrary.
         for (const planClass of planLibrary) {
+            console.log('planLib: ', planLibrary);
+            console.log('plan Class: ', planClass);
             // If the intention has been stopped, throw an exception indicating the intention was stopped.
             if (this.stopped) throw ['stopped intention', ...this.predicate];
     

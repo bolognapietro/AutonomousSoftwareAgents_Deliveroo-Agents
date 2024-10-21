@@ -1,6 +1,7 @@
 import GoPickUp from "./actions/pick_up.js";
 import GoPutDown from "./actions/put_down.js";
 import GoTo from "./actions/go_to.js";
+import Plan from "./plan.js"
 
 const planLibrary = []
 
@@ -12,7 +13,7 @@ class Intention {
 
     #current_plan; // stores the current plan being used to achieve the intention.
     #stopped = false; // boolean indicating whether the intention has been stopped.
-
+   
     //* Getter method allows external access to the private #stopped field to check if the intention has been stopped.
     get stopped () {
         return this.#stopped;
@@ -21,6 +22,7 @@ class Intention {
     //* Method sets the #stopped field to true and stops the current plan if it exists.
     stop () {
         // this.log( 'stop intention', ...this.#predicate );
+        this.#started = false;
         this.#stopped = true;
         if (this.#current_plan)
             this.#current_plan.stop();
@@ -41,9 +43,13 @@ class Intention {
     //* Initializes an instance with a parent and a predicate. The parent is typically the object that manages this intention, and the predicate describes the intention details.
     constructor ( parent, predicate ) {
         this.#parent = parent;
-        this.#predicate = Array.isArray(predicate) ? predicate : [predicate];
+        this.#predicate = Array.isArray(predicate) ? predicate : [predicate]; // Assicurati che predicate sia un array
         console.log('Intention constructor called with predicate:', this.#predicate); // Logga il predicato nel costruttore
 
+    }
+
+    get_predicate() {
+        return this.#predicate;
     }
 
 
@@ -71,11 +77,22 @@ class Intention {
             console.log('plan Class: ', planClass);
             // If the intention has been stopped, throw an exception indicating the intention was stopped.
             if (this.stopped) throw ['stopped intention', ...this.predicate];
-    
+            
+            console.log('predicate:', ...this.predicate);
+            var plan = this.predicate
+            console.log(plan)
+            // transform this.predicate into a Plan
+            var new_plan = new Plan(this.predicate, this.predicate[0], this.predicate[1], this.predicate[2], this.predicate[3])
+
+            console.log('new_plan:', new_plan)
+
+            var res = planClass.isApplicableTo(this.predicate[0]);
+            console.log('res:', res)
+
             // Check if the current plan class is applicable to the current intention's predicate.
-            if (planClass.isApplicableTo(...this.predicate)) {
-                this.#current_plan = new planClass(this.#parent); // instantiate the plan class with the parent of the intention.
+            if (planClass.isApplicableTo(this.predicate[0])) {
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
+                this.#current_plan = new planClass(this.#parent); // instantiate the plan class with the parent of the intention.
                 try {
                     const plan_res = await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.

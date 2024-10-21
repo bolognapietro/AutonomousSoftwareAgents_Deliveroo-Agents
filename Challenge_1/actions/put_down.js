@@ -1,10 +1,13 @@
 import Plan from '../plan.js';
 class GoPutDown extends Plan {
-    static isApplicableTo ( go_put_down, x, y) {
-        return go_put_down == 'go_put_down';
+    
+    #move = 'go_put_down';
+
+    isApplicableTo ( move, x, y, id  ) {
+        return this.#move == move;
     }
 
-    async execute ( go_put_down, x, y ) {
+    async execute ( x, y ) {
         // Check if the plan has been stopped.
         if (this.stopped) 
             throw ['stopped']; // if yes, throw an exception to halt execution.

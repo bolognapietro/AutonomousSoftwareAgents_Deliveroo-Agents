@@ -16,10 +16,16 @@ class Plan {
     }
 
     #parent; // private field to hold a reference to the parent object that might be controlling or monitoring this plan.
-
+    
     // Initialize the plan with a reference to the parent object.
-    constructor(parent) {
-        this.#parent = parent; 
+    constructor( parent, move, x, y, id ) {
+        this.#parent = parent;
+        this.move = move
+        this.x = x;
+        this.y = y;
+        this.id = id;
+        console.log(`parent: ${parent} `);
+        //- x: ${x} - y: ${y} - id: ${id}`);
     }
 
     log(...args) {

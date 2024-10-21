@@ -1,5 +1,6 @@
 import { client } from './client_config.js';
 import Me from './me.js';
+import Plan from './plan.js';
 import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './support_fn.js';
 import IntentionRevision from './intention_rev.js';
 import IntentionRevisionReplace from './intention_rev.js';
@@ -63,6 +64,8 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
         return distanceA - distanceB;
     });
 
+    // console.log('Sorted goPickUpOptions:', goPickUpOptions);
+
     // Esegui il ciclo for sulle opzioni ordinate
     for (const option of goPickUpOptions) {
         let [go_pick_up, x, y, id] = option;
@@ -73,11 +76,21 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
         }
     }
 
+    console.log('Option:', goPickUpOptions);
+    
+    // creare una lista di new Plan per ogni goPickUpOptions
+    // const plans = goPickUpOptions.map( ( [move, x, y, id] ) => {
+    //     return new Plan( { move , x, y, id } );
+    // } );
+
+    // console.log( 'planss: ', plans );
+    
     if ( myAgent.me.particelsCarried ) {
         let deliveryPoint = findNearestDeliveryPoint(me, deliveryPoints, false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else if ( best_option ) {
+        // const best_plan = new Plan(best_option[0], best_option[1], best_option[2], best_option[3] );
         myAgent.push(best_option);
     }
 } )
