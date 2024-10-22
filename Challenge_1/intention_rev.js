@@ -134,7 +134,8 @@ class IntentionRevisionReplace extends IntentionRevision {
         }
        
         console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
-        const intention = new Intention( this, predicate ); // create a new Intention object.
+        console.log( '\nothers', this.me, this.maps ); // log the action of pushing a new intention.
+        const intention = new Intention( this, predicate, this.me, this.maps ); // create a new Intention object.
 
         this.intention_queue.push( intention ); // add the new intention to the queue.
         // console.log('Intention queue:', this.intention_queue);

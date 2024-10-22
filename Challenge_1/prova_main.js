@@ -5,28 +5,38 @@ import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistan
 import IntentionRevisionReplace from './intention_rev.js';
 
 var me = new Me();
+var maps;
 const parcels = new Map();
+
 
 client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent.    
     me.setInfos( {id, name, x, y, score} );
     myAgent.me = me;
 } );
 
-const position_agents  = {}
+client.onMap( (height, width, map) => {
+    var maps = new Maps(width, height);
+    for (const { x, y, delivery } of map) {
+        maps.set(y, x, delivery ? 1 : 0);
+    }
+    myAgent.maps = maps;
+});
 
-client.onAgentsSensing( ( agents ) => {
+// const position_agents  = {}
 
-    position_agents.x = agents.map( ( {x} ) => {
-        return x
-    } );
-    position_agents.y = agents.map( ( {y} ) => {
-        return y
-    } );
-    // console.log( position_agents)
-} )
+// client.onAgentsSensing( ( agents ) => {
+
+//     position_agents.x = agents.map( ( {x} ) => {
+//         return x
+//     } );
+//     position_agents.y = agents.map( ( {y} ) => {
+//         return y
+//     } );
+//     // console.log( position_agents)
+// } )
 
 
-const myAgent = new IntentionRevisionReplace(me);
+const myAgent = new IntentionRevisionReplace(me, maps);
 
 
 client.onParcelsSensing( async ( perceived_parcels ) => {

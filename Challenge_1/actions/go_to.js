@@ -1,5 +1,4 @@
-import Plans from '../plan.js';
-import 
+import Plans from '../plan.js'; 
 class GoTo extends Plans {
 
     static isApplicableTo ( move, x, y, id ) {

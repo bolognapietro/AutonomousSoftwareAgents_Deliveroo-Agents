@@ -59,11 +59,14 @@ class Intention {
     
         // Iterate through each plan class available in the planLibrary.
         for (const planClass of planLibrary) {
+
+            console.log('prova ', ...this.predicate)
             // If the intention has been stopped, throw an exception indicating the intention was stopped.
             if (this.stopped) throw ['stopped intention', ...this.predicate];
     
             // Check if the current plan class is applicable to the current intention's predicate.
             if (planClass.isApplicableTo(...this.predicate)) {
+                
                 this.#current_plan = new planClass(this.#parent); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
                 try {

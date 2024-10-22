@@ -7,7 +7,7 @@ class Maps {
     constructor(width, height) {
         this.width = width
         this.height = height
-        this.#map = Array(width).fill().map(() => Array(height).fill(0));
+        this.#map = Array(width).fill().map(() => Array(height).fill(-1));
     }
 
     set(x, y, value) {
