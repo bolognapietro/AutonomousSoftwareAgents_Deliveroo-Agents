@@ -1,9 +1,9 @@
-import Plan from '../plan.js';
-class GoTo extends Plan {
+import Plans from '../plan.js';
+import 
+class GoTo extends Plans {
 
-    #move = 'go_to';
-    isApplicableTo ( move, x, y, id ) {
-        return this.#move == move;
+    static isApplicableTo ( move, x, y, id ) {
+        return 'go_to' == move;
     }
 
     async execute(go_to, targetX, targetY) {

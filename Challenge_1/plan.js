@@ -1,4 +1,5 @@
-class Plan {
+import Intention from "./intention.js";
+class Plans {
     #stopped = false; // private field to track whether the plan has been stopped.
     
     stop() {
@@ -18,12 +19,8 @@ class Plan {
     #parent; // private field to hold a reference to the parent object that might be controlling or monitoring this plan.
     
     // Initialize the plan with a reference to the parent object.
-    constructor( parent, move, x, y, id ) {
+    constructor( parent ) {
         this.#parent = parent;
-        this.move = move
-        this.x = x;
-        this.y = y;
-        this.id = id;
         console.log(`parent: ${parent} `);
         //- x: ${x} - y: ${y} - id: ${id}`);
     }
@@ -46,4 +43,4 @@ class Plan {
     }
 }
 
-export default Plan;
+export default Plans;

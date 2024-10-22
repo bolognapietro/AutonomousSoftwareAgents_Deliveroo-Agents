@@ -1,10 +1,8 @@
-import Plan from '../plan.js';
-class GoPickUp extends Plan {
-
-    #moves = 'go_pick_up';
+import Plans from '../plan.js';
+class GoPickUp extends Plans {
     
-    isApplicableTo ( move, x, y, id ) {
-        return this.#moves == move;
+    static isApplicableTo ( move, x, y, id ) {
+        return 'go_pick_up' == move;
     }
 
     async execute ( go_pick_up, x, y ) {

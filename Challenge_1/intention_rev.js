@@ -2,23 +2,29 @@ import Intention from './intention.js';
 
 class IntentionRevision {
     #me;
+    #maps;
     // #parcels = new Map();
+
+    constructor(me, maps){
+        this.#me = me
+        this.#maps = maps
+    }
 
     get me() {
         return this.#me;
+    }
+
+    get maps(){
+        return this.#maps;
     }
 
     set me(value) {
         this.#me = value;
     }
 
-    // get parcels() {
-    //     return this.#parcels;
-    // }
-
-    // set parcels(value) {
-    //     this.#parcels = value;
-    // }
+    set maps(values){
+        this.#maps = values;
+    }
 
     #intention_queue = new Array(); // private field to store the queue of intentions.
 

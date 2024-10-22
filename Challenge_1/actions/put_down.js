@@ -1,10 +1,8 @@
 import Plan from '../plan.js';
 class GoPutDown extends Plan {
-    
-    #move = 'go_put_down';
 
-    isApplicableTo ( move, x, y, id  ) {
-        return this.#move == move;
+    static isApplicableTo ( move, x, y, id  ) {
+        return 'go_put_down' == move;
     }
 
     async execute ( x, y ) {

@@ -1,8 +1,7 @@
 import { client } from './client_config.js';
 import Me from './me.js';
-import Plan from './plan.js';
+import Maps from './map.js'
 import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './support_fn.js';
-import IntentionRevision from './intention_rev.js';
 import IntentionRevisionReplace from './intention_rev.js';
 
 var me = new Me();
@@ -13,8 +12,22 @@ client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when
     myAgent.me = me;
 } );
 
+const position_agents  = {}
+
+client.onAgentsSensing( ( agents ) => {
+
+    position_agents.x = agents.map( ( {x} ) => {
+        return x
+    } );
+    position_agents.y = agents.map( ( {y} ) => {
+        return y
+    } );
+    // console.log( position_agents)
+} )
+
+
 const myAgent = new IntentionRevisionReplace(me);
-myAgent.loop();
+
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
     let count = 0;
@@ -95,16 +108,5 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     }
 } )
 
-const position_agents  = {}
 
-client.onAgentsSensing( ( agents ) => {
-
-    position_agents.x = agents.map( ( {x} ) => {
-        return x
-    } );
-    position_agents.y = agents.map( ( {y} ) => {
-        return y
-    } );
-    // console.log( position_agents)
-} )
-
+myAgent.loop();
