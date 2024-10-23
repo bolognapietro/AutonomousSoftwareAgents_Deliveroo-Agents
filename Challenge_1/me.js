@@ -3,6 +3,7 @@ import { client } from "./client_config.js";
 class Me {
     #numParticelsCarried;
     #particelsCarried;
+    #previus_position;
     #map_particles;
 
     constructor() {
@@ -13,6 +14,7 @@ class Me {
         this.score = null;
         this.#numParticelsCarried = 0;
         this.#particelsCarried = false;
+        this.#previus_position = null;
         this.#map_particles = new Map();
     }
 
@@ -30,6 +32,14 @@ class Me {
 
     set particelsCarried(value) {
         this.#particelsCarried = value;
+    }
+
+    get previus_position() {    
+        return this.#previus_position;
+    }
+
+    set previus_position(value) {
+        this.#previus_position = value;
     }
 
     get map_particels() {

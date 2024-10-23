@@ -14,11 +14,13 @@ client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when
     myAgent.me = me;
 } );
 
-client.onMap( (height, width, map) => {
+let deliveryPoints = [];
+client.onMap( (height, width, map, coords) => {
     var maps = new Maps(width, height);
     for (const { x, y, delivery } of map) {
         maps.set(y, x, delivery ? 1 : 0);
     }
+    // deliveryPoints = coords.filter(coord => coord.delivery);
     myAgent.maps = maps;
 });
 
@@ -43,15 +45,15 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     let count = 0;
     for (const p of perceived_parcels) {
         parcels.set( p.id, p)
-        me.perceiveParticle(p.id, p); 
+        myAgent.me.perceiveParticle(p.id, p); 
         if (p.carriedBy == me.id) {
             count++;
         }
     }
 
-    me.numParticelsCarried = count;
-    if (me.numParticelsCarried > 0) {
-        me.particelsCarried = true;
+    myAgent.me.numParticelsCarried = count;
+    if (myAgent.me.numParticelsCarried > 0) {
+        myAgent.me.particelsCarried = true;
     }
 
     // -------------------
@@ -69,7 +71,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     for (const option of options) {
         if (option[0] === 'go_pick_up') {
             let [go_pick_up, x, y, id] = option;
-            let current_d = distance({x, y}, me);
+            let current_d = distance({x, y}, myAgent.me);
             if (current_d < nearest) {
                 best_option = option;
                 nearest = current_d;
@@ -82,8 +84,8 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
 
     // Ordina le opzioni filtrate in base alla distanza
     goPickUpOptions.sort((a, b) => {
-        let distanceA = distance({ x: a[1], y: a[2] }, me);
-        let distanceB = distance({ x: b[1], y: b[2] }, me);
+        let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+        let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
         return distanceA - distanceB;
     });
 
@@ -92,7 +94,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     // Esegui il ciclo for sulle opzioni ordinate
     for (const option of goPickUpOptions) {
         let [go_pick_up, x, y, id] = option;
-        let current_d = distance({ x, y }, me);
+        let current_d = distance({ x, y }, myAgent.me);
         if (current_d < nearest) {
             best_option = option;
             nearest = current_d;
@@ -109,7 +111,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     // console.log( 'planss: ', plans );
     
     if ( myAgent.me.particelsCarried ) {
-        let deliveryPoint = findNearestDeliveryPoint(me, deliveryPoints, false);
+        let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }
     else if ( best_option ) {

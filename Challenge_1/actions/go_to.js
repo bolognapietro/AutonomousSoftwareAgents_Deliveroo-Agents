@@ -1,14 +1,22 @@
+import {client} from '../client_config.js';
 import Plans from '../plan.js'; 
 class GoTo extends Plans {
+    constructor(parent, me, maps) {
+        super(parent);
+        this.me = me;
+        this.maps = maps;
+        console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
+        console.log('prova meArray nel costruttore di GoTo: ', this.maps); // Aggiungi un log nel costruttore
+    }
 
     static isApplicableTo ( move, x, y, id ) {
         return 'go_to' == move;
     }
 
-    async execute( targetX, targetY, me, maps ){
-        console.log("GoTo me: ", me);
+    async execute( go_to, targetX, targetY ){
+        console.log("GoTo me: ", targetX, targetY);
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
-        var shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, maps) 
+        var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps) 
         if (shortestPath !== null) {
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {
@@ -23,6 +31,8 @@ class GoTo extends Plans {
     }
 
     async findShortestPath(agentX, agentY, targetX, targetY, map) {
+        console.log("FindShortestPath maps: ", map);
+        console.log("FindShortestPath agentX: ", agentX, agentY, targetX, targetY);
         const queue = [{ x: agentX, y: agentY, moves: [] }];
         const visited = new Set();
 
@@ -31,6 +41,7 @@ class GoTo extends Plans {
 
             if (x === targetX && y === targetY) {
                 // Hai trovato la particella. Restituisci la sequenza di mosse.
+                console.log("Trovata particella: ", moves);
                 return moves;
             }
 
@@ -68,7 +79,7 @@ class GoTo extends Plans {
     }
 
     isValidPosition(myX, myY, map) {
-        return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height && map.coords.some(row => row.x === myX && row.y === myY);
+        return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height; // && map.coords.some(row => row.x === myX && row.y === myY);
     }
 }
 

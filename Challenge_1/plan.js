@@ -39,8 +39,9 @@ class Plans {
 
     #sub_intentions = []; // private field to store an array of sub-intentions.
 
-    async subIntention(predicate) {
-        const sub_intention = new Intention(this, predicate); // create a new sub-intention.
+    async subIntention(predicate, me, maps) {
+        console.log('subIntention predicate: ', predicate);
+        const sub_intention = new Intention(this, predicate, me, maps); // create a new sub-intention.
         this.#sub_intentions.push(sub_intention); // add the new sub-intention to the array.
         return await sub_intention.achieve(); // attempt to achieve the sub-intention and return the result.
     }

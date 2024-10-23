@@ -1,16 +1,23 @@
+import {client} from '../client_config.js';
 import Plan from '../plan.js';
 class GoPutDown extends Plan {
+    constructor(parent, me, maps) {
+        super(parent);
+        this.me = me;
+        this.maps = maps;
+        console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
+    }
 
     static isApplicableTo ( move, x, y, id  ) {
         return 'go_put_down' == move;
     }
 
-    async execute ( x, y, me, maps ) {
+    async execute ( put_down, x, y ) {
         // Check if the plan has been stopped.
         if (this.stopped) 
             throw ['stopped']; // if yes, throw an exception to halt execution.
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
-        await this.subIntention(['go_to', x, y, me, maps]); 
+        await this.subIntention(['go_to', x, y], this.me, this.maps); 
 
         // Check if the plan has been stopped after moving.
         if (this.stopped) 
@@ -19,11 +26,10 @@ class GoPutDown extends Plan {
         await client.putdown() 
 
         // Check once more if the plan has been stopped after picking up.
-        if (this.stopped) 
-            throw ['stopped']; // If yes, throw an exception to halt execution.
+        if (this.stopped) throw ['stopped']; // If yes, throw an exception to halt execution.
         
         // If all actions are completed without the plan being stopped, return true indicating success.
-        myAgent.me.particelsCarried = false;
+        this.me.particelsCarried = false;
         // parcelCarriedByMe = false;
         return true; 
     }
