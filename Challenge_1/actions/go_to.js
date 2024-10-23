@@ -5,9 +5,10 @@ class GoTo extends Plans {
         return 'go_to' == move;
     }
 
-    async execute(go_to, targetX, targetY) {
+    async execute( targetX, targetY, me, maps ){
+        console.log("GoTo me: ", me);
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
-        var shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, map) 
+        var shortestPath = await this.findShortestPath(me.x, me.y, targetX, targetY, maps) 
         if (shortestPath !== null) {
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {

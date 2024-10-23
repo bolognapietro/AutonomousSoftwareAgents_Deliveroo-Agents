@@ -5,12 +5,12 @@ class GoPutDown extends Plan {
         return 'go_put_down' == move;
     }
 
-    async execute ( x, y ) {
+    async execute ( x, y, me, maps ) {
         // Check if the plan has been stopped.
         if (this.stopped) 
             throw ['stopped']; // if yes, throw an exception to halt execution.
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
-        await this.subIntention(['go_to', x, y]); 
+        await this.subIntention(['go_to', x, y, me, maps]); 
 
         // Check if the plan has been stopped after moving.
         if (this.stopped) 

@@ -40,6 +40,10 @@ class Me {
         this.#map_particles = value
     }
 
+    get get_coordinates() {
+        return {x: this.x, y: this.y};
+    }
+
     perceiveParticle(id, particle) {
         this.#map_particles.set(id, particle);
     }

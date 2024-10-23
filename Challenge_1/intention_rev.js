@@ -44,6 +44,7 @@ class IntentionRevision {
                 console.log('intentionRevision.loop', this.intention_queue.map(i => i.predicate));
         
                 var intention = this.intention_queue[0];
+                var args = intention.get_args();
                        
                 if (intention.predicate.length == 4) {
                     let id = intention.predicate[3];
@@ -136,11 +137,11 @@ class IntentionRevisionReplace extends IntentionRevision {
         console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
         console.log( '\nothers', this.me, this.maps ); // log the action of pushing a new intention.
         const intention = new Intention( this, predicate, this.me, this.maps ); // create a new Intention object.
-
+        console.log( 'intention', intention.predicate, intention.get_me() ); // log the new intention.
         this.intention_queue.push( intention ); // add the new intention to the queue.
-        // console.log('Intention queue:', this.intention_queue);
+        
         this.intention_queue.forEach(async (intent) => {
-            console.log('for each -> ', intent.predicate)
+            console.log(`for each -> ${intent.predicate}`);
         });
         
         // Stop the last intention if it exists.

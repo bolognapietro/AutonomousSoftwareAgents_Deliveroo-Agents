@@ -34,10 +34,27 @@ class Intention {
     }
     #predicate; // specific details of the intention, usually in the form of an array like ['go_to', x, y].
 
+    #me;
+    #maps;
+
+    get_me() {
+        return this.#me;
+    }
+
+    get_maps() {
+        return this.#maps;
+    }
+
+    get_args() {
+        return [this.#me, this.#maps];
+    }
+    
     //* Initializes an instance with a parent and a predicate. The parent is typically the object that manages this intention, and the predicate describes the intention details.
-    constructor ( parent, predicate ) {
+    constructor ( parent, predicate, me, maps ) {
         this.#parent = parent;
         this.#predicate = predicate;
+        this.#me = me;
+        this.#maps = maps;
     }
 
     // A utility method for logging. It uses the parent's log method if available; otherwise, it defaults to console.log
@@ -60,17 +77,17 @@ class Intention {
         // Iterate through each plan class available in the planLibrary.
         for (const planClass of planLibrary) {
 
-            console.log('prova ', ...this.predicate)
+            // console.log('prova ', ...this.predicate)
             // If the intention has been stopped, throw an exception indicating the intention was stopped.
             if (this.stopped) throw ['stopped intention', ...this.predicate];
     
             // Check if the current plan class is applicable to the current intention's predicate.
             if (planClass.isApplicableTo(...this.predicate)) {
-                
+                // console.log('PROVA SU PROVA ', this_me, planClass.name)
                 this.#current_plan = new planClass(this.#parent); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
                 try {
-                    const plan_res = await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
+                    const plan_res = await this.#current_plan.execute(...this.predicate, this.me, this.maps); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
