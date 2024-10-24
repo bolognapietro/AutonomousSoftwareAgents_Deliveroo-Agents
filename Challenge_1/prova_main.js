@@ -14,28 +14,27 @@ client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when
     myAgent.me = me;
 } );
 
-let deliveryPoints = [];
-client.onMap( (height, width, map, coords) => {
+// let deliveryPoints = [];
+client.onMap( (height, width, map) => {
     var maps = new Maps(width, height);
     for (const { x, y, delivery } of map) {
-        maps.set(y, x, delivery ? 1 : 0);
+        maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
     }
     // deliveryPoints = coords.filter(coord => coord.delivery);
     myAgent.maps = maps;
 });
 
-// const position_agents  = {}
+const position_agents  = {}
+client.onAgentsSensing( ( agents ) => {
 
-// client.onAgentsSensing( ( agents ) => {
-
-//     position_agents.x = agents.map( ( {x} ) => {
-//         return x
-//     } );
-//     position_agents.y = agents.map( ( {y} ) => {
-//         return y
-//     } );
-//     // console.log( position_agents)
-// } )
+    position_agents.x = agents.map( ( {x} ) => {
+        return x
+    } );
+    position_agents.y = agents.map( ( {y} ) => {
+        return y
+    } );
+    // console.log( position_agents)
+} )
 
 
 const myAgent = new IntentionRevisionReplace(me, maps);
@@ -51,13 +50,13 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
         }
     }
 
-    myAgent.me.numParticelsCarried = count;
-    if (myAgent.me.numParticelsCarried > 0) {
-        myAgent.me.particelsCarried = true;
-    }
-
+    // myAgent.me.numParticelsCarried = count;
+    // if (myAgent.me.numParticelsCarried > 0) {
+    //     myAgent.me.particelsCarried = true;
+    // }
+} );
     // -------------------
-
+client.onParcelsSensing(parcels => {
     const options = [];
     
     for (const parcel of parcels.values()) {
@@ -111,6 +110,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     // console.log( 'planss: ', plans );
     
     if ( myAgent.me.particelsCarried ) {
+        // console.log('getDeliverPoints:', myAgent.maps.getDeliverPoints());
         let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
         myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     }

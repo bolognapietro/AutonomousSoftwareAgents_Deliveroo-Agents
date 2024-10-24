@@ -5,7 +5,7 @@ class GoPickUp extends Plans {
         super(parent);
         this.me = me;
         this.maps = maps;
-        console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
+        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
     }
     
     static isApplicableTo ( move, x, y, id) {
@@ -16,7 +16,7 @@ class GoPickUp extends Plans {
         // Check if the plan has been stopped.
         if (this.stopped) throw ['stopped']; // if yes, throw an exception to halt execution.
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
-        console.log("GoPickUp me: ", this.me);
+        // console.log("GoPickUp me: ", this.me);
         await this.subIntention(['go_to', x, y], this.me, this.maps); 
 
         // Check if the plan has been stopped after moving.

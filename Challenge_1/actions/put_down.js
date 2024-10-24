@@ -5,7 +5,7 @@ class GoPutDown extends Plan {
         super(parent);
         this.me = me;
         this.maps = maps;
-        console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
+        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
     }
 
     static isApplicableTo ( move, x, y, id  ) {
@@ -30,6 +30,7 @@ class GoPutDown extends Plan {
         
         // If all actions are completed without the plan being stopped, return true indicating success.
         this.me.particelsCarried = false;
+        // this.me.numParticelsCarried -= 1;
         // parcelCarriedByMe = false;
         return true; 
     }

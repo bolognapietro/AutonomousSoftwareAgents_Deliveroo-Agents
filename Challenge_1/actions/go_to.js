@@ -5,8 +5,8 @@ class GoTo extends Plans {
         super(parent);
         this.me = me;
         this.maps = maps;
-        console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
-        console.log('prova meArray nel costruttore di GoTo: ', this.maps); // Aggiungi un log nel costruttore
+        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
+        // console.log('prova meArray nel costruttore di GoTo: ', this.maps); // Aggiungi un log nel costruttore
     }
 
     static isApplicableTo ( move, x, y, id ) {
@@ -14,7 +14,7 @@ class GoTo extends Plans {
     }
 
     async execute( go_to, targetX, targetY ){
-        console.log("GoTo me: ", targetX, targetY);
+        // console.log("GoTo me: ", targetX, targetY);
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
         var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps) 
         if (shortestPath !== null) {
@@ -31,8 +31,8 @@ class GoTo extends Plans {
     }
 
     async findShortestPath(agentX, agentY, targetX, targetY, map) {
-        console.log("FindShortestPath maps: ", map);
-        console.log("FindShortestPath agentX: ", agentX, agentY, targetX, targetY);
+        // console.log("FindShortestPath maps: ", map);
+        // console.log("FindShortestPath agentX: ", agentX, agentY, targetX, targetY);
         const queue = [{ x: agentX, y: agentY, moves: [] }];
         const visited = new Set();
 
@@ -41,7 +41,7 @@ class GoTo extends Plans {
 
             if (x === targetX && y === targetY) {
                 // Hai trovato la particella. Restituisci la sequenza di mosse.
-                console.log("Trovata particella: ", moves);
+                // console.log("Trovata particella: ", moves);
                 return moves;
             }
 

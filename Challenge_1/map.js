@@ -1,13 +1,13 @@
 class Maps {
 
-    #map;
+    #map; //0 = vuoto, 1 = delivery, 2 = piastrella
     #deliverPoints = [];
     #agentMap = {};
 
     constructor(width, height) {
         this.width = width
         this.height = height
-        this.#map = Array(width).fill().map(() => Array(height).fill(-1));
+        this.#map = Array(width).fill().map(() => Array(height).fill(0));
     }
 
     set(x, y, value) {

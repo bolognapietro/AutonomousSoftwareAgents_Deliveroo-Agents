@@ -4,7 +4,7 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     return dx + dy;
 }
 
-
+//TODO DA RISCRIVERE
 function findNearestDeliveryPoint(agent, deliveryPoints, bool) { //position_agents
     if (bool){
         // if the agent is already on the delivery point, eliminate it from the list
@@ -12,11 +12,11 @@ function findNearestDeliveryPoint(agent, deliveryPoints, bool) { //position_agen
             return point.x !== agent.x || point.y !== agent.y;
         });
     }
-
+    
     let nearest = deliveryPoints.reduce((prev, curr) => {
         var unreachable_curr = false;
         var unreachable_prev = false;
-        
+        console.log('curr:' + curr + ' prev:' + prev);
         // Check if the delivery point is already taken by another agent  ?
 
         

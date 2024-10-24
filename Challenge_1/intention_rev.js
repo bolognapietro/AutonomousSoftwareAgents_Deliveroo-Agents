@@ -14,12 +14,12 @@ class IntentionRevision {
         return this.#me;
     }
 
-    get maps(){
-        return this.#maps;
-    }
-
     set me(value) {
         this.#me = value;
+    }
+    
+    get maps(){
+        return this.#maps;
     }
 
     set maps(values){
@@ -41,15 +41,15 @@ class IntentionRevision {
     async loop () {
         while (true) {
             if (this.intention_queue.length > 0) {
-                // console.log('intentionRevision.loop', this.intention_queue.map(i => i.predicate));
+                console.log('intentionRevision.loop', this.intention_queue.map(i => i.predicate));
         
                 var intention = this.intention_queue[0];
-                var args = intention.get_args();
+                // var args = intention.get_args();
                        
                 if (intention.predicate.length == 4) {
                     let id = intention.predicate[3];
                     let p = this.#me.getParticleById(id)
-                    console.log('id:', id, 'p:', p);
+                    // console.log('id:', id, 'p:', p);
                     
                     if (p && p.carriedBy) {
                         console.log('Skipping intention because no more valid', intention.predicate);
@@ -64,21 +64,21 @@ class IntentionRevision {
         
                 this.intention_queue.shift(); // Rimuovi l'intenzione usata usando splice()
                 this.#lastMoveTime = Date.now();
-            } /*
-            else {
-                if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
-                    // console.log('No intentions, moving randomly');
-                    this.moveToPreviusPos();
-                    this.#lastMoveTime = Date.now();
-                    this.#first = true;
-                    this.#moveInterval = 3000;
-                }
-                else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
-                    // console.log('No intentions, moving randomly');
-                    this.moveToRandomPos();
-                    this.#lastMoveTime = Date.now();
-                }
-            }*/
+            } 
+            // else {
+            //     if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
+            //         // console.log('No intentions, moving randomly');
+            //         this.moveToPreviusPos();
+            //         this.#lastMoveTime = Date.now();
+            //         this.#first = true;
+            //         this.#moveInterval = 3000;
+            //     }
+            //     else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
+            //         // console.log('No intentions, moving randomly');
+            //         this.moveToRandomPos();
+            //         this.#lastMoveTime = Date.now();
+            //     }
+            // }
             await new Promise(res => setImmediate(res));
         }
     }
@@ -90,7 +90,7 @@ class IntentionRevision {
 
     moveToRandomPos() {
         if (this.checkForParcels()) return;
-        const random_pos = [[map.width/4, map.width/4], [map.width/4, 3*map.width/4], [3*map.width/4, map.width/4], [3*map.width/4, 3*map.width/4]];
+        const random_pos = [[this.#maps.width/4, this.#maps.width/4], [this.#maps.width/4, 3*this.#maps.width/4], [3*this.#maps.width/4, this.#maps.width/4], [3*this.#maps.width/4, 3*this.#maps.width/4]];
         const randomIndex = Math.floor(Math.random() * random_pos.length);
         const selectedPosition = random_pos[randomIndex];
         myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
@@ -108,10 +108,11 @@ class IntentionRevision {
     }
 
     isNearby(parcel) {
-        const distance = Math.sqrt((parcel.x - me.x) ** 2 + (parcel.y - me.y) ** 2);
+        const distance = Math.sqrt((parcel.x - this.#me.x) ** 2 + (parcel.y - this.#me.y) ** 2);
         return distance <= 1; // Adjust the distance threshold as needed
     }
-*/
+    */
+
     // async push ( predicate ) { }
     
     log ( ...args ) {
@@ -134,15 +135,15 @@ class IntentionRevisionReplace extends IntentionRevision {
             return; 
         }
        
-        // console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
+        console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
         // console.log( '\nothers', this.me, this.maps ); // log the action of pushing a new intention.
         const intention = new Intention( this, predicate, this.me, this.maps ); // create a new Intention object.
         // console.log( 'intention', intention.predicate, intention.get_me() ); // log the new intention.
         this.intention_queue.push( intention ); // add the new intention to the queue.
         
-        this.intention_queue.forEach(async (intent) => {
-            console.log(`for each -> ${intent.predicate}`);
-        });
+        // this.intention_queue.forEach(async (intent) => {
+        //     console.log(`for each -> ${intent.predicate}`);
+        // });
         
         // Stop the last intention if it exists.
         if ( last ) { //&& distance({x: me.x, y: me.y}, {x: last.predicate[1], y: last.predicate[2]}) > distance({x: me.x, y: me.y}, {x: predicate[1], y: predicate[2]})
