@@ -2,7 +2,7 @@ import { client } from './client_config.js';
 import Me from './me.js';
 import Maps from './map.js'
 import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './support_fn.js';
-import IntentionRevisionReplace from './intention_rev.js';
+import IntentionRevision from './intention_rev.js';
 
 var me = new Me();
 var maps;
@@ -14,13 +14,13 @@ client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when
     myAgent.me = me;
 } );
 
-// let deliveryPoints = [];
-client.onMap( (height, width, map) => {
-    var maps = new Maps(width, height);
-    for (const { x, y, delivery } of map) {
-        maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
-    }
-    // deliveryPoints = coords.filter(coord => coord.delivery);
+let deliveryPoints = [];
+client.onMap( (height, width, coords) => {
+    deliveryPoints = coords.filter(coord => coord.delivery);
+    var maps = new Maps(width, height, coords, deliveryPoints);
+    // for (const { x, y, delivery } of map) {
+    //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
+    // }
     myAgent.maps = maps;
 });
 
@@ -37,7 +37,7 @@ client.onAgentsSensing( ( agents ) => {
 } )
 
 
-const myAgent = new IntentionRevisionReplace(me, maps);
+const myAgent = new IntentionRevision(me, maps);
 
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
@@ -65,58 +65,58 @@ client.onParcelsSensing(parcels => {
         }
     }
 
-    let best_option;
-    let nearest = Number.MAX_VALUE;
-    for (const option of options) {
-        if (option[0] === 'go_pick_up') {
-            let [go_pick_up, x, y, id] = option;
-            let current_d = distance({x, y}, myAgent.me);
-            if (current_d < nearest) {
-                best_option = option;
-                nearest = current_d;
-            }
-        }
-    }
+    // let best_option;
+    // let nearest = Number.MAX_VALUE;
+    // for (const option of options) {
+    //     if (option[0] === 'go_pick_up') {
+    //         let [go_pick_up, x, y, id] = option;
+    //         let current_d = distance({x, y}, myAgent.me);
+    //         if (current_d < nearest) {
+    //             best_option = option;
+    //             nearest = current_d;
+    //         }
+    //     }
+    // }
 
-    // Filtra le opzioni che contengono 'go_pick_up'
-    let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
+    // // Filtra le opzioni che contengono 'go_pick_up'
+    // let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
 
-    // Ordina le opzioni filtrate in base alla distanza
-    goPickUpOptions.sort((a, b) => {
-        let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
-        let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
-        return distanceA - distanceB;
-    });
+    // // Ordina le opzioni filtrate in base alla distanza
+    // goPickUpOptions.sort((a, b) => {
+    //     let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+    //     let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
+    //     return distanceA - distanceB;
+    // });
 
-    // console.log('Sorted goPickUpOptions:', goPickUpOptions);
+    // // console.log('Sorted goPickUpOptions:', goPickUpOptions);
 
-    // Esegui il ciclo for sulle opzioni ordinate
-    for (const option of goPickUpOptions) {
-        let [go_pick_up, x, y, id] = option;
-        let current_d = distance({ x, y }, myAgent.me);
-        if (current_d < nearest) {
-            best_option = option;
-            nearest = current_d;
-        }
-    }
+    // // Esegui il ciclo for sulle opzioni ordinate
+    // for (const option of goPickUpOptions) {
+    //     let [go_pick_up, x, y, id] = option;
+    //     let current_d = distance({ x, y }, myAgent.me);
+    //     if (current_d < nearest) {
+    //         best_option = option;
+    //         nearest = current_d;
+    //     }
+    // }
 
-    console.log('Option:', goPickUpOptions);
+    // console.log('Option:', goPickUpOptions);
     
-    // creare una lista di new Plan per ogni goPickUpOptions
-    // const plans = goPickUpOptions.map( ( [move, x, y, id] ) => {
-    //     return new Plan( { move , x, y, id } );
-    // } );
+    // // creare una lista di new Plan per ogni goPickUpOptions
+    // // const plans = goPickUpOptions.map( ( [move, x, y, id] ) => {
+    // //     return new Plan( { move , x, y, id } );
+    // // } );
 
-    // console.log( 'planss: ', plans );
+    // // console.log( 'planss: ', plans );
     
-    if ( myAgent.me.particelsCarried ) {
-        // console.log('getDeliverPoints:', myAgent.maps.getDeliverPoints());
-        let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
-        myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
-    }
-    else if ( best_option ) {
+    // if ( myAgent.me.particelsCarried ) {
+    //     // console.log('getDeliverPoints:', myAgent.maps.getDeliverPoints());
+    //     let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
+    //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
+    // }
+    if ( options ) {
         // const best_plan = new Plan(best_option[0], best_option[1], best_option[2], best_option[3] );
-        myAgent.push(best_option);
+        myAgent.push(options);
     }
 } )
 

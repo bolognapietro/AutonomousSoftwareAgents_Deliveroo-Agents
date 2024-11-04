@@ -1,21 +1,27 @@
 class Maps {
 
     #map; //0 = vuoto, 1 = delivery, 2 = piastrella
-    #deliverPoints = [];
+    // deliverPoints = [];
     #agentMap = {};
 
-    constructor(width, height) {
+    constructor(width, height, coords, delPoints) {
         this.width = width
         this.height = height
-        this.#map = Array(width).fill().map(() => Array(height).fill(0));
+        this.#map = coords;
+        this.deliverPoints = delPoints
+        // this.#map = Array(width).fill().map(() => Array(height).fill(0));
     }
 
-    set(x, y, value) {
-        this.#map[y][x] = value;
-        if (value == 1) {
-            this.#deliverPoints.push({ x: y, y: x });
-        }
-    }
+    // set_deliver_points(deliverPoints) { 
+    //     this.#deliverPoints = this.coords.filter(this.coord => this.coord.delivery);;
+    // }
+
+    // set(x, y, value) {
+    //     this.#map[y][x] = value;
+    //     if (value == 1) {
+    //         this.#deliverPoints.push({ x: y, y: x });
+    //     }
+    // }
     setAgent(id, x, y, time) {
         this.#agentMap[id] = { id: id, x: x, y: y, time: time };
     }
@@ -28,34 +34,34 @@ class Maps {
         return returnArray;
     }
 
-    get(x, y) {
-        return this.#map[x][y];
-    }
+    // get(x, y) {
+    //     return this.#map[x][y];
+    // }
 
-    getMap() {
+    // getMap() {
 
-        let tmpAgentMap = this.getAgentMap();
-        // Filter and remove agents that haven't been seen for 10 seconds
-        tmpAgentMap = tmpAgentMap.filter(agent => {
-            return agent.time >= Date.now() - 10000;
-        });
+    //     let tmpAgentMap = this.getAgentMap();
+    //     // Filter and remove agents that haven't been seen for 10 seconds
+    //     tmpAgentMap = tmpAgentMap.filter(agent => {
+    //         return agent.time >= Date.now() - 10000;
+    //     });
 
-        // For each agent, update the cell weight
-        const grid = this.#map;
-        grid.forEach((row, x) => {
-            row.forEach((cell, y) => {
-                if (cell != 0) {
-                    grid[x][y] = 1;
-                }
-            })
-        })
+    //     // For each agent, update the cell weight
+    //     const grid = this.#map;
+    //     grid.forEach((row, x) => {
+    //         row.forEach((cell, y) => {
+    //             if (cell != 0) {
+    //                 grid[x][y] = 1;
+    //             }
+    //         })
+    //     })
 
 
-        return grid;
-    }
+    //     return grid;
+    // }
 
     getDeliverPoints() {
-        return this.#deliverPoints;
+        return this.deliverPoints;
     }
 
     print() {
