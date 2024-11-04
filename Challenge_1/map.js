@@ -7,7 +7,7 @@ class Maps {
     constructor(width, height, coords, delPoints) {
         this.width = width
         this.height = height
-        this.#map = coords;
+        this.map = coords;
         this.deliverPoints = delPoints
         // this.#map = Array(width).fill().map(() => Array(height).fill(0));
     }

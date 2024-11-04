@@ -6,8 +6,6 @@ import IntentionRevision from './intention_rev.js';
 
 var me = new Me();
 var maps;
-const parcels = new Map();
-
 
 client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent.    
     me.setInfos( {id, name, x, y, score} );
@@ -19,35 +17,36 @@ client.onMap( (height, width, coords) => {
     deliveryPoints = coords.filter(coord => coord.delivery);
     var maps = new Maps(width, height, coords, deliveryPoints);
     // for (const { x, y, delivery } of map) {
-    //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
-    // }
-    myAgent.maps = maps;
-});
-
-const position_agents  = {}
-client.onAgentsSensing( ( agents ) => {
-
-    position_agents.x = agents.map( ( {x} ) => {
-        return x
-    } );
-    position_agents.y = agents.map( ( {y} ) => {
-        return y
-    } );
-    // console.log( position_agents)
-} )
-
-
+        //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
+        // }
+        myAgent.maps = maps;
+    });
+    
+    const position_agents  = {}
+    client.onAgentsSensing( ( agents ) => {
+        
+        position_agents.x = agents.map( ( {x} ) => {
+            return x
+        } );
+        position_agents.y = agents.map( ( {y} ) => {
+            return y
+        } );
+        // console.log( position_agents)
+    } )
+    
+    
 const myAgent = new IntentionRevision(me, maps);
 
+const parcels = new Map();
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
     let count = 0;
     for (const p of perceived_parcels) {
         parcels.set( p.id, p)
         myAgent.me.perceiveParticle(p.id, p); 
-        if (p.carriedBy == me.id) {
-            count++;
-        }
+        // if (p.carriedBy == me.id) {
+        //     count++;
+        // }
     }
 
     // myAgent.me.numParticelsCarried = count;

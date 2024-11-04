@@ -79,7 +79,7 @@ class GoTo extends Plans {
     }
 
     isValidPosition(myX, myY, map) {
-        return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height; // && map.coords.some(row => row.x === myX && row.y === myY);
+        return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height && map.map.some(row => row.x === myX && row.y === myY);
     }
 }
 

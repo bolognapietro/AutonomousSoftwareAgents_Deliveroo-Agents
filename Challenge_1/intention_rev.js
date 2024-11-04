@@ -55,9 +55,9 @@ class IntentionRevision {
                 nearest_parcel = current_d;
             }
         }
-        if ( this.#me.particelsCarried ) {
-            let deliveryPoint = fn.findNearestDeliveryPoint(this.#me, this.#maps.deliverPoints);
-            nearest_delivery_pt = fn.distance(deliveryPoint, this.#me);
+        if ( this.me.particelsCarried ) {
+            let deliveryPoint = fn.findNearestDeliveryPoint(this.me, this.maps.deliverPoints);
+            nearest_delivery_pt = fn.distance(deliveryPoint, this.me);
             if ( nearest_delivery_pt < nearest_parcel ) {
                 predicate = ['go_put_down', deliveryPoint.x, deliveryPoint.y];
             }
@@ -97,8 +97,8 @@ class IntentionRevision {
                 console.log('intention:', intention);
                 // var args = intention.get_args();
                        
-                let id = intention.predicate[3]
-                let p = this.#me.getParticleById(id)
+                let id = intention.predicate[2]
+                let p = this.me.getParticleById(id)
                 if ( p && p.carriedBy ) {
                     console.log( 'Skipping intention because no more valid', intention.predicate )
                     continue;
