@@ -31,6 +31,8 @@ class IntentionRevision {
     #lastMoveTime = Date.now();
     #moveInterval = 5000;
     #first = false;
+
+    list_parcel = [];
     
     //* Getter method to access the private intention queue.
     get intention_queue () {
@@ -63,7 +65,20 @@ class IntentionRevision {
             }
         }    
         if ( predicate === undefined ) {
-            predicate = ['go_to', 15, 10];
+            if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
+                // console.log('No intentions, moving randomly');
+
+                predicate = this.moveToPreviusPos();
+                this.#lastMoveTime = Date.now();
+                this.#first = true;
+                this.#moveInterval = 3000;
+            }
+            else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
+                // console.log('No intentions, moving randomly');
+                predicate = this.moveToRandomPos();
+                this.#lastMoveTime = Date.now();
+            }
+            // predicate = ['go_to', 15, 10];
         }
         
         if (predicate !== undefined) {
@@ -72,7 +87,7 @@ class IntentionRevision {
                 return;
             }
             if ( predicate !== old_predicate ) {    
-                if ( this.intention_queue.length >= 1 && this.intention_queue[0].predicate[0] !== 'go_put_down' ) {
+                if ( this.intention_queue.length >= 1 && this.intention_queue[0].predicate[0] === 'go_put_down' ) {
                     this.intention_queue[0].stop();
                 }
                 // Create a new intention and push it to the queue
@@ -81,6 +96,14 @@ class IntentionRevision {
                 old_predicate = predicate;    
             }
         }
+        console.log('intentionRevision.push', this.intention_queue.length);
+        //rearrange the queue based on the distance from the agent
+        this.intention_queue.sort((a, b) => {
+            let a_distance = fn.distance({x: a.predicate[1], y: a.predicate[2]}, this.me);
+            let b_distance = fn.distance({x: b.predicate[1], y: b.predicate[2]}, this.me);
+            return a_distance - b_distance;
+        });
+
         
         // console.log(this.intention_queue.map(i=>i.predicate));
         console.log('\n');
@@ -139,25 +162,29 @@ class IntentionRevision {
             await new Promise(res => setImmediate(res));
         }
     }
-/*
+
     moveToPreviusPos() {
-        if (this.checkForParcels()) return;
-        myAgent.push(['go_to', previus_position.x, previus_position.y]);
+        // if (this.checkForParcels()) {
+
+        // }
+        return ['go_to', this.#me.previus_position.x, this.#me.previus_position.y];
     }
 
     moveToRandomPos() {
-        if (this.checkForParcels()) return;
+        // if (this.checkForParcels()) return;
         const random_pos = [[this.#maps.width/4, this.#maps.width/4], [this.#maps.width/4, 3*this.#maps.width/4], [3*this.#maps.width/4, this.#maps.width/4], [3*this.#maps.width/4, 3*this.#maps.width/4]];
         const randomIndex = Math.floor(Math.random() * random_pos.length);
         const selectedPosition = random_pos[randomIndex];
-        myAgent.push(['go_to', selectedPosition[0], selectedPosition[1]]);
+        return ['go_to', selectedPosition[0], selectedPosition[1]];
     }
 
     checkForParcels() {
         const parcels = this.#me.map_particels;
+        
         for (let [id, parcel] of parcels.entries()) {
             if (!parcel.carriedBy && this.isNearby(parcel)) {
-                myAgent.push(['go_pick_up', parcel.x, parcel.y, id]);
+                list_parcel.push(['go_pick_up', parcel.x, parcel.y, id]);
+                // myAgent.push(['go_pick_up', parcel.x, parcel.y, id]);
                 return true;
             }
         }
@@ -168,7 +195,7 @@ class IntentionRevision {
         const distance = Math.sqrt((parcel.x - this.#me.x) ** 2 + (parcel.y - this.#me.y) ** 2);
         return distance <= 1; // Adjust the distance threshold as needed
     }
-    */
+    
 
     // async push ( predicate ) { }
     

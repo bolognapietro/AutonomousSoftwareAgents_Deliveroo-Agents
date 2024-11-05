@@ -59,6 +59,7 @@ client.onParcelsSensing(parcels => {
     const options = [];
     
     for (const parcel of parcels.values()) {
+        console.log('PARTICELLA:', parcel.id)
         if (!parcel.carriedBy) {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
@@ -114,6 +115,11 @@ client.onParcelsSensing(parcels => {
     //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     // }
     if ( options ) {
+        options.sort((a, b) => {
+            let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+            let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
+            return distanceA - distanceB;
+        });
         // const best_plan = new Plan(best_option[0], best_option[1], best_option[2], best_option[3] );
         myAgent.push(options);
     }
