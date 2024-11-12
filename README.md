@@ -16,8 +16,20 @@ Now you can open a browser and view the game locally: http://localhost:8080
 
 --- EDIT TOKEN PART ---
 Finally, open another terminal and go to the Project_AutonomousSoftwareAgents folder and launch the main.js file. 
+
+*Single agent scenario*
 ```bash
 cd Project_AutonomousSoftwareAgents/Challenge_1
-node main.js
+node prova_main.js agent1 
+```
+
+*Multi-agent scenario*
+```bash
+cd Project_AutonomousSoftwareAgents/Challenge_1
+node prova_main.js agent1 master
+```
+```bash
+cd Project_AutonomousSoftwareAgents/Challenge_1
+node prova_main.js agent2 slave
 ```
 When you return to the web page you will notice that your agent will move autonomously (TODO)

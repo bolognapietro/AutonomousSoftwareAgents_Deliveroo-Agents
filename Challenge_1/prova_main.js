@@ -19,20 +19,26 @@ client.onMap( (height, width, coords) => {
     // for (const { x, y, delivery } of map) {
         //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
         // }
-        myAgent.maps = maps;
-    });
+    myAgent.maps = maps;
+});
+
+// client.onConnect( async () => {   
+//     if (me.master) {
+//         //TODO IMPLEMENT HANDSHAKING
+//     }
+// } );
     
-    const position_agents  = {}
-    client.onAgentsSensing( ( agents ) => {
-        
-        position_agents.x = agents.map( ( {x} ) => {
-            return x
-        } );
-        position_agents.y = agents.map( ( {y} ) => {
-            return y
-        } );
-        // console.log( position_agents)
-    } )
+const position_agents  = {}
+client.onAgentsSensing( ( agents ) => {
+    
+    position_agents.x = agents.map( ( {x} ) => {
+        return x
+    } );
+    position_agents.y = agents.map( ( {y} ) => {
+        return y
+    } );
+    // console.log( position_agents)
+} )
     
     
 const myAgent = new IntentionRevision(me, maps);

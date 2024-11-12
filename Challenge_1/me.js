@@ -16,6 +16,9 @@ class Me {
         this.#particelsCarried = false;
         this.#previus_position = null;
         this.#map_particles = new Map();
+
+        this.master = process.argv[3] === 'master'; // true if the agent is the master
+        this.friendId = null;
     }
 
     get numParticelsCarried() {
@@ -62,6 +65,10 @@ class Me {
         return this.#map_particles.get(id);
     }
 
+    setFriendId(id) {
+        this.friendId = id;
+    }
+
     setInfos({id, name, x, y, score}) {
         this.id = id;
         this.name = name;
@@ -69,6 +76,7 @@ class Me {
         this.y = y;
         this.score = score;
     }
+
 
 }
 
