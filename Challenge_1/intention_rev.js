@@ -65,15 +65,15 @@ class IntentionRevision {
             }
         }    
         if ( predicate === undefined ) {
-            if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
-                // console.log('No intentions, moving randomly');
+            // if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
+            //     // console.log('No intentions, moving randomly');
 
-                predicate = this.moveToPreviusPos();
-                this.#lastMoveTime = Date.now();
-                this.#first = true;
-                this.#moveInterval = 3000;
-            }
-            else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
+            //     predicate = this.moveToPreviusPos();
+            //     this.#lastMoveTime = Date.now();
+            //     this.#first = true;
+            //     this.#moveInterval = 3000;
+            // }
+            if (Date.now() - this.#lastMoveTime > this.#moveInterval ) {
                 // console.log('No intentions, moving randomly');
                 predicate = this.moveToRandomPos();
                 this.#lastMoveTime = Date.now();

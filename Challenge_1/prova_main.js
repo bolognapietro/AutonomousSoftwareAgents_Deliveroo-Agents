@@ -3,32 +3,27 @@ import Me from './me.js';
 import Maps from './map.js'
 import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './support_fn.js';
 import IntentionRevision from './intention_rev.js';
+import Message from './message.js';
+import { handleMsg } from './collaboration.js';
 
 var me = new Me();
+var collaborator_agent;
 var maps;
 
-client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent.    
+client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent
     me.setInfos( {id, name, x, y, score} );
     myAgent.me = me;
 } );
 
-let deliveryPoints = [];
-client.onMap( (height, width, coords) => {
-    deliveryPoints = coords.filter(coord => coord.delivery);
-    var maps = new Maps(width, height, coords, deliveryPoints);
-    // for (const { x, y, delivery } of map) {
-        //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
-        // }
-    myAgent.maps = maps;
-});
-
-// client.onConnect( async () => {   
-//     if (me.master) {
-//         //TODO IMPLEMENT HANDSHAKING
-//     }
-// } );
-    
 const position_agents  = {}
+
+if (process.argv[3] == 'master'){
+    collaborator_agent = new Me();
+} 
+
+const myAgent = new IntentionRevision(me, maps);
+myAgent.loop();
+
 client.onAgentsSensing( ( agents ) => {
     
     position_agents.x = agents.map( ( {x} ) => {
@@ -37,12 +32,12 @@ client.onAgentsSensing( ( agents ) => {
     position_agents.y = agents.map( ( {y} ) => {
         return y
     } );
-    // console.log( position_agents)
+    // var friends = agents.filter( ( {name} ) => {
+    //     return name === 'agent2'
+    // });
+    // console.log('friends:', friends);
 } )
     
-    
-const myAgent = new IntentionRevision(me, maps);
-
 const parcels = new Map();
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
@@ -131,5 +126,24 @@ client.onParcelsSensing(parcels => {
     }
 } )
 
+let deliveryPoints = [];
+client.onMap( (height, width, coords) => {
+    deliveryPoints = coords.filter(coord => coord.delivery);
+    var maps = new Maps(width, height, coords, deliveryPoints);
+    // for (const { x, y, delivery } of map) {
+        //     maps.set(y, x, delivery ? 1 : 2); //0 = vuoto, 1 = delivery, 2 = piastrella
+        // }
+    myAgent.maps = maps;
+});
 
-myAgent.loop();
+client.onMsg(async (id, name, msg, reply) => 
+    handleMsg(id, name, msg, reply, me, maps, client, myAgent, perceivedAgents));
+
+client.onConnect( async () => {   
+    if (me.master) {
+        let msg = new Message();
+        msg.setHeader("HANDSHAKE");
+        msg.setContent("acquarium?")
+        await client.shout(msg);
+    }
+} );
