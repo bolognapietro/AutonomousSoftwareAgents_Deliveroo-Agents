@@ -26,13 +26,10 @@ async function handleMsg(id, name, msg, reply, client, myAgent) {
             console.log('Handshake completed');
             let msg = new Message();
             msg.setHeader("START_JOB");
-            msg.setContent({ x: me.x, y: me.y });
+            msg.setContent({ x: myAgent.me.x, y: myAgent.me.y });
             await client.say(id, msg, reply);
-            // if we use the split map stragey, apply it
-
-            
             msg.setHeader("CURRENT_INTENTION");
-            msg.setContent(me.currentIntention)
+            msg.setContent(myAgent.me.currentIntention)
             await client.say(id, msg)
         }
     }

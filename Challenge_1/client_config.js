@@ -11,8 +11,6 @@ const configs = {
 const name = process.argv[2]; // agent1 or agent2
 const token = configs.token[name]; // token for the agent
 
-
-
 export const client = new DeliverooApi(
     configs.host , //'http://10.196.182.49:8080',
     token 
