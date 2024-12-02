@@ -9,17 +9,21 @@ import { handleMsg } from './collaboration.js';
 var me = new Me();
 var collaborator_agent;
 var maps;
+var friend_name;
 
 client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent
     me.setInfos( {id, name, x, y, score} );
+    friend_name = (name === 'agent1') ? 'agent2' : 'agent1';
     myAgent.me = me;
+
 } );
 
 const position_agents  = {}
 
-if (process.argv[3] == 'master'){
-    collaborator_agent = new Me();
-} 
+// if (process.argv[3] == 'master'){
+//     pass
+//     // myAgent.me.master = true;
+// } 
 
 const myAgent = new IntentionRevision(me, maps);
 myAgent.loop();
@@ -32,9 +36,9 @@ client.onAgentsSensing( ( agents ) => {
     position_agents.y = agents.map( ( {y} ) => {
         return y
     } );
-    // var friends = agents.filter( ( {name} ) => {
-    //     return name === 'agent2'
-    // });
+    position_agents.id = agents.map( ( {id} ) => {
+        return id
+    } );
     // console.log('friends:', friends);
 } )
     
@@ -136,14 +140,24 @@ client.onMap( (height, width, coords) => {
     myAgent.maps = maps;
 });
 
-client.onMsg(async (id, name, msg, reply) => 
-    handleMsg(id, name, msg, reply, me, maps, client, myAgent, perceivedAgents));
+client.onMsg(async (id, name, msg, reply) => (
+    // console.log('id: ', id),
+    // console.log('msg: ', msg),
+    handleMsg(id, name, msg, reply, client, myAgent)
+));
 
 client.onConnect( async () => {   
-    if (me.master) {
+    if (myAgent.me.master) {
         let msg = new Message();
         msg.setHeader("HANDSHAKE");
         msg.setContent("acquarium?")
         await client.shout(msg);
+        // let name = myAgent.me.name;
+        // let id = myAgent.me.id;
+        // await client.shout({
+        //     hello: '[HANDSHAKE] ' + name + ' firstMessage',
+        //     iam: name,
+        //     id: id
+        // });
     }
 } );
