@@ -11,17 +11,17 @@ async function handleMsg(id, name, msg, reply, client, myAgent) {
     // }
 
     if (msg.header == 'HANDSHAKE') {
-        if (!myAgent.me.master && msg.content == 'acquarium?') {
+        if (!myAgent.me.master && msg.content == 'attacchiamo?') {
             myAgent.me.setFriendId(id);
             let msg = new Message();
             msg.setHeader("HANDSHAKE");
-            msg.setContent("acquarium!");
+            msg.setContent("attacchiamo!");
             await client.say(id, msg, reply);
             msg.setHeader("CURRENT_INTENTION");
-            msg.setContent(me.currentIntention)
+            msg.setContent(myAgent.me.currentIntention)
             await client.say(id, msg)
         }
-        if (myAgent.me.master && msg.content == 'acquarium!') {
+        if (myAgent.me.master && msg.content == 'attacchiamo!') {
             myAgent.me.setFriendId(id);
             console.log('Handshake completed');
             let msg = new Message();

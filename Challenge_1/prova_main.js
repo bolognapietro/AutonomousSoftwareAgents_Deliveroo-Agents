@@ -150,14 +150,7 @@ client.onConnect( async () => {
     if (myAgent.me.master) {
         let msg = new Message();
         msg.setHeader("HANDSHAKE");
-        msg.setContent("acquarium?")
+        msg.setContent("attacchiamo?")
         await client.shout(msg);
-        // let name = myAgent.me.name;
-        // let id = myAgent.me.id;
-        // await client.shout({
-        //     hello: '[HANDSHAKE] ' + name + ' firstMessage',
-        //     iam: name,
-        //     id: id
-        // });
     }
 } );
