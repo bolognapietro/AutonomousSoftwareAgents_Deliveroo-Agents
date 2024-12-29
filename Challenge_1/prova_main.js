@@ -27,20 +27,6 @@ const position_agents  = {}
 
 const myAgent = new IntentionRevision(me, maps);
 myAgent.loop();
-
-client.onAgentsSensing( ( agents ) => {
-    
-    position_agents.x = agents.map( ( {x} ) => {
-        return x
-    } );
-    position_agents.y = agents.map( ( {y} ) => {
-        return y
-    } );
-    position_agents.id = agents.map( ( {id} ) => {
-        return id
-    } );
-    // console.log('friends:', friends);
-} )
     
 const parcels = new Map();
 
@@ -62,10 +48,10 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     // -------------------
 client.onParcelsSensing(parcels => {
     const options = [];
-    
+    const seenParcels = myAgent.get_parcerls_to_pickup();
     for (const parcel of parcels.values()) {
         console.log('PARTICELLA:', parcel.id)
-        if (!parcel.carriedBy) {
+        if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
     }
@@ -119,6 +105,14 @@ client.onParcelsSensing(parcels => {
     //     let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
     //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
     // }
+
+    if (myAgent.me.friendId && options.length > 0) {
+        let msg = new Message();
+        msg.setHeader("INFO_PARCELS");
+        msg.setContent(options);
+        client.say(myAgent.me.friendId, msg);
+    }
+
     if ( options ) {
         options.sort((a, b) => {
             let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
@@ -139,6 +133,20 @@ client.onMap( (height, width, coords) => {
         // }
     myAgent.maps = maps;
 });
+
+client.onAgentsSensing( ( agents ) => {
+    
+    position_agents.x = agents.map( ( {x} ) => {
+        return x
+    } );
+    position_agents.y = agents.map( ( {y} ) => {
+        return y
+    } );
+    position_agents.id = agents.map( ( {id} ) => {
+        return id
+    } );
+    // console.log('friends:', friends);
+} )
 
 client.onMsg(async (id, name, msg, reply) => (
     // console.log('id: ', id),

@@ -1,14 +1,5 @@
 import Message from './message.js';
 async function handleMsg(id, name, msg, reply, client, myAgent) {
-    // finalize the handshake
-    // let splitMSG = msg.hello.split(" ");
-    // if (splitMSG[0] == "[HANDSHAKE]" && !myAgent.me.master){
-    //     await client.say(id, {
-    //         hello: '[HANDSHAKE] ' + client.name + ' ack',
-    //         iam: client.name,
-    //         id: client.id
-    //     });
-    // }
 
     if (msg.header == 'HANDSHAKE') {
         if (!myAgent.me.master && msg.content == 'attacchiamo?') {
@@ -30,8 +21,22 @@ async function handleMsg(id, name, msg, reply, client, myAgent) {
             await client.say(id, msg, reply);
             msg.setHeader("CURRENT_INTENTION");
             msg.setContent(myAgent.me.currentIntention)
-            await client.say(id, msg)
+            await client.say(id, msg, reply)
         }
+    }
+
+    if (msg.header === 'INFO_PARCELS') {
+        // see content and update the parcels if not already present
+        const seenParcels = myAgent.get_parcerls_to_pickup();
+        let new_parcels = msg.content;
+        const options = [];
+        for (const parcel of new_parcels) {
+            if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
+                // console.log('new parcel collab', parcel.x, parcel.y, parcel.id);
+                options.push(['go_pick_up', parcel[1], parcel[2], parcel[3]]);
+            }
+        }
+        myAgent.push(options)
     }
 }
 

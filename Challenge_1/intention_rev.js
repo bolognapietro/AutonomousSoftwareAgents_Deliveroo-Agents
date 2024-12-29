@@ -39,6 +39,45 @@ class IntentionRevision {
         return this.#intention_queue; 
     }
 
+    #parcels_picked_up_friend = new Array();
+
+    get parcels_picked_up_friend() {
+        return this.#parcels_picked_up_friend;
+    }
+
+    set parcels_picked_up_friend(value) {
+        this.#parcels_picked_up_friend = value;
+    }
+
+    get_parcerls_to_pickup() {
+        const parcels = new Map();
+        for (let intention of this.intention_queue) {
+            if (intention.predicate[0] == 'go_pick_up') {
+                let id = intention.predicate[2]
+                let p = this.me.getParticleById(id)
+                if (p && id) {
+                    parcels.set(id, p);
+                }
+                // const args = intention.get_args();
+                // if (args[0] && args[0].id) {
+                //     parcels.push(args[0].id);
+                // }
+            }
+        }
+        return parcels
+    }
+
+    // remove(parcel) {
+    //     this.intention_queue = this.intention_queue.filter(intention => {
+    //         if (intention.predicate == 'go_pick_up') {
+    //             const args = intention.get_args();
+    //             if (args[0] && args[0].id) {
+    //                 return args[0].id !== parcel.id;
+    //             }
+    //         }
+    //     });
+    // }
+
     async push ( options ) {
         // Print my position and the options
         // console.log( 'My position: ', me.x, me.y );
