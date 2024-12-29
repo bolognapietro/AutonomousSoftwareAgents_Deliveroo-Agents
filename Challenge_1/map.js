@@ -23,7 +23,8 @@ class Maps {
     //     }
     // }
     setAgent(id, x, y, time) {
-        this.#agentMap[id] = { id: id, x: x, y: y, time: time };
+        this.#agentMap.set(id, { id: id, x: x, y: y, time: time });
+        // this.#agentMap[id] = { id: id, x: x, y: y, time: time };
     }
 
     getAgentMap() {

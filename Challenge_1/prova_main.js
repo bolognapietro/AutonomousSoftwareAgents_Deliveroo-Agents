@@ -7,27 +7,21 @@ import Message from './message.js';
 import { handleMsg } from './collaboration.js';
 
 var me = new Me();
-var collaborator_agent;
 var maps;
-var friend_name;
+// var friend_name;
 
 client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when the client receives data about the current agent
     me.setInfos( {id, name, x, y, score} );
-    friend_name = (name === 'agent1') ? 'agent2' : 'agent1';
+    // friend_name = (name === 'agent1') ? 'agent2' : 'agent1';
     myAgent.me = me;
 
 } );
 
-const position_agents  = {}
-
-// if (process.argv[3] == 'master'){
-//     pass
-//     // myAgent.me.master = true;
-// } 
 
 const myAgent = new IntentionRevision(me, maps);
 myAgent.loop();
-    
+
+const agents_map  = {};
 const parcels = new Map();
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
@@ -35,17 +29,17 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
     for (const p of perceived_parcels) {
         parcels.set( p.id, p)
         myAgent.me.perceiveParticle(p.id, p); 
-        // if (p.carriedBy == me.id) {
-        //     count++;
-        // }
+        if (p.carriedBy == me.id) {
+            count++;
+        }
     }
 
-    // myAgent.me.numParticelsCarried = count;
-    // if (myAgent.me.numParticelsCarried > 0) {
-    //     myAgent.me.particelsCarried = true;
-    // }
+    myAgent.me.numParticelsCarried = count;
+    if (myAgent.me.numParticelsCarried > 0) {
+        myAgent.me.particelsCarried = true;
+    }
 } );
-    // -------------------
+
 client.onParcelsSensing(parcels => {
     const options = [];
     const seenParcels = myAgent.get_parcerls_to_pickup();
@@ -55,57 +49,57 @@ client.onParcelsSensing(parcels => {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
     }
-
-    // let best_option;
-    // let nearest = Number.MAX_VALUE;
-    // for (const option of options) {
-    //     if (option[0] === 'go_pick_up') {
-    //         let [go_pick_up, x, y, id] = option;
-    //         let current_d = distance({x, y}, myAgent.me);
-    //         if (current_d < nearest) {
-    //             best_option = option;
-    //             nearest = current_d;
-    //         }
-    //     }
-    // }
-
-    // // Filtra le opzioni che contengono 'go_pick_up'
-    // let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
-
-    // // Ordina le opzioni filtrate in base alla distanza
-    // goPickUpOptions.sort((a, b) => {
-    //     let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
-    //     let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
-    //     return distanceA - distanceB;
-    // });
-
-    // // console.log('Sorted goPickUpOptions:', goPickUpOptions);
-
-    // // Esegui il ciclo for sulle opzioni ordinate
-    // for (const option of goPickUpOptions) {
-    //     let [go_pick_up, x, y, id] = option;
-    //     let current_d = distance({ x, y }, myAgent.me);
-    //     if (current_d < nearest) {
-    //         best_option = option;
-    //         nearest = current_d;
-    //     }
-    // }
-
-    // console.log('Option:', goPickUpOptions);
+    /*
+    let best_option;
+    let nearest = Number.MAX_VALUE;
+    for (const option of options) {
+        if (option[0] === 'go_pick_up') {
+            let [go_pick_up, x, y, id] = option;
+            let current_d = distance({x, y}, myAgent.me);
+            if (current_d < nearest) {
+                best_option = option;
+                nearest = current_d;
+            }
+        }
+    }
     
-    // // creare una lista di new Plan per ogni goPickUpOptions
-    // // const plans = goPickUpOptions.map( ( [move, x, y, id] ) => {
-    // //     return new Plan( { move , x, y, id } );
-    // // } );
+    // Filtra le opzioni che contengono 'go_pick_up'
+    let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
 
-    // // console.log( 'planss: ', plans );
+    // Ordina le opzioni filtrate in base alla distanza
+    goPickUpOptions.sort((a, b) => {
+        let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+        let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
+        return distanceA - distanceB;
+    });
+
+    // console.log('Sorted goPickUpOptions:', goPickUpOptions);
+
+    // Esegui il ciclo for sulle opzioni ordinate
+    for (const option of goPickUpOptions) {
+        let [go_pick_up, x, y, id] = option;
+        let current_d = distance({ x, y }, myAgent.me);
+        if (current_d < nearest) {
+            best_option = option;
+            nearest = current_d;
+        }
+    }
+
+    console.log('Option:', goPickUpOptions);
     
-    // if ( myAgent.me.particelsCarried ) {
-    //     // console.log('getDeliverPoints:', myAgent.maps.getDeliverPoints());
-    //     let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
-    //     myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
-    // }
+    // creare una lista di new Plan per ogni goPickUpOptions
+    // const plans = goPickUpOptions.map( ( [move, x, y, id] ) => {
+    //     return new Plan( { move , x, y, id } );
+    // } );
 
+    // console.log( 'planss: ', plans );
+    
+    if ( myAgent.me.particelsCarried ) {
+        // console.log('getDeliverPoints:', myAgent.maps.getDeliverPoints());
+        let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
+        myAgent.push(['go_put_down', deliveryPoint.x, deliveryPoint.y]);
+    }
+    */
     if (myAgent.me.friendId && options.length > 0) {
         let msg = new Message();
         msg.setHeader("INFO_PARCELS");
@@ -135,23 +129,21 @@ client.onMap( (height, width, coords) => {
 });
 
 client.onAgentsSensing( ( agents ) => {
-    
-    position_agents.x = agents.map( ( {x} ) => {
+    agents_map.x = agents.map( ( {x} ) => {
         return x
     } );
-    position_agents.y = agents.map( ( {y} ) => {
+    agents_map.y = agents.map( ( {y} ) => {
         return y
     } );
-    position_agents.id = agents.map( ( {id} ) => {
+    agents_map.id = agents.map( ( {id} ) => {
         return id
     } );
-    // console.log('friends:', friends);
 } )
 
 client.onMsg(async (id, name, msg, reply) => (
     // console.log('id: ', id),
     // console.log('msg: ', msg),
-    handleMsg(id, name, msg, reply, client, myAgent)
+    handleMsg(id, name, msg, reply, maps, client, myAgent, position_agents)
 ));
 
 client.onConnect( async () => {   

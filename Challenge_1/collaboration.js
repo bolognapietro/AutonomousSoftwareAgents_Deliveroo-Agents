@@ -1,5 +1,7 @@
 import Message from './message.js';
-async function handleMsg(id, name, msg, reply, client, myAgent) {
+import {distance} from './support_fn.js';
+
+async function handleMsg(id, name, msg, reply, maps, client, myAgent, position_agents) {
 
     if (msg.header == 'HANDSHAKE') {
         if (!myAgent.me.master && msg.content == 'attacchiamo?') {
@@ -32,11 +34,29 @@ async function handleMsg(id, name, msg, reply, client, myAgent) {
         const options = [];
         for (const parcel of new_parcels) {
             if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
-                // console.log('new parcel collab', parcel.x, parcel.y, parcel.id);
                 options.push(['go_pick_up', parcel[1], parcel[2], parcel[3]]);
             }
         }
-        myAgent.push(options)
+        if ( options ) {
+            options.sort((a, b) => {
+                let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+                let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
+                return distanceA - distanceB;
+            });
+            
+            myAgent.push(options);
+        }
+    }
+
+    if (msg.header === 'INFO_AGENTS') {
+        let perceived_agents = msg.content;
+
+        for (const agent of perceived_agents) {
+            if (agent.id !== myAgent.me.id) {
+                position_agents.set(agent.id, agent);
+                maps.setAgent(agent.id, agent.x, agent.y, Date.now())
+            }
+        }
     }
 }
 

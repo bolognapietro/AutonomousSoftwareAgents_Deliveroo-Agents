@@ -39,15 +39,15 @@ class IntentionRevision {
         return this.#intention_queue; 
     }
 
-    #parcels_picked_up_friend = new Array();
+    // #parcels_picked_up_friend = new Array();
 
-    get parcels_picked_up_friend() {
-        return this.#parcels_picked_up_friend;
-    }
+    // get parcels_picked_up_friend() {
+    //     return this.#parcels_picked_up_friend;
+    // }
 
-    set parcels_picked_up_friend(value) {
-        this.#parcels_picked_up_friend = value;
-    }
+    // set parcels_picked_up_friend(value) {
+    //     this.#parcels_picked_up_friend = value;
+    // }
 
     get_parcerls_to_pickup() {
         const parcels = new Map();
@@ -58,25 +58,10 @@ class IntentionRevision {
                 if (p && id) {
                     parcels.set(id, p);
                 }
-                // const args = intention.get_args();
-                // if (args[0] && args[0].id) {
-                //     parcels.push(args[0].id);
-                // }
             }
         }
         return parcels
     }
-
-    // remove(parcel) {
-    //     this.intention_queue = this.intention_queue.filter(intention => {
-    //         if (intention.predicate == 'go_pick_up') {
-    //             const args = intention.get_args();
-    //             if (args[0] && args[0].id) {
-    //                 return args[0].id !== parcel.id;
-    //             }
-    //         }
-    //     });
-    // }
 
     async push ( options ) {
         // Print my position and the options
@@ -104,20 +89,11 @@ class IntentionRevision {
             }
         }    
         if ( predicate === undefined ) {
-            // if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
-            //     // console.log('No intentions, moving randomly');
-
-            //     predicate = this.moveToPreviusPos();
-            //     this.#lastMoveTime = Date.now();
-            //     this.#first = true;
-            //     this.#moveInterval = 3000;
-            // }
             if (Date.now() - this.#lastMoveTime > this.#moveInterval ) {
                 // console.log('No intentions, moving randomly');
                 predicate = this.moveToRandomPos();
                 this.#lastMoveTime = Date.now();
             }
-            // predicate = ['go_to', 15, 10];
         }
         
         if (predicate !== undefined) {
