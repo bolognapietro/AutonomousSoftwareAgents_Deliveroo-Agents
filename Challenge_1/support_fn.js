@@ -4,7 +4,7 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     return dx + dy;
 }
 
-//TODO DA RISCRIVERE
+
 function findNearestDeliveryPoint(agent, deliveryPoints) { //position_agents
     
     let nearest = deliveryPoints.reduce((prev, curr) => {
@@ -46,4 +46,17 @@ function findPointsAtDistance() {
     return points.filter(point => isValidPosition(point.x, point.y, mmap));
 }
 
-export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance };
+function stucked(dir1, dir2) {
+    if (dir1.length > 1 || dir2.length > 1) {
+        return false;
+    }  
+    if (dir1.length === 1 && dir2.length === 1) {
+        return true;
+    }
+    if (dir1.length === 0 || dir2.length === 0) {
+        return true;
+    }
+    return false;
+}
+
+export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance, stucked };

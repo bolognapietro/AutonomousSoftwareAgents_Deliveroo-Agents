@@ -1,7 +1,7 @@
 import Message from './message.js';
 import {distance} from './support_fn.js';
 
-async function handleMsg(id, name, msg, reply, maps, client, myAgent, position_agents) {
+async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map) {
 
     if (msg.header == 'HANDSHAKE') {
         if (!myAgent.me.master && msg.content == 'attacchiamo?') {
@@ -50,11 +50,10 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, position_a
 
     if (msg.header === 'INFO_AGENTS') {
         let perceived_agents = msg.content;
-
         for (const agent of perceived_agents) {
             if (agent.id !== myAgent.me.id) {
-                position_agents.set(agent.id, agent);
-                maps.setAgent(agent.id, agent.x, agent.y, Date.now())
+                agents_map.set(agent.id, agent);
+                myAgent.maps.setAgent(agent.id, agent.x, agent.y, Date.now())
             }
         }
     }

@@ -21,7 +21,7 @@ client.onYou( ( {id, name, x, y, score} ) => {  // Event listener triggered when
 const myAgent = new IntentionRevision(me, maps);
 myAgent.loop();
 
-const agents_map  = {};
+const agents_map  = new Map();
 const parcels = new Map();
 
 client.onParcelsSensing( async ( perceived_parcels ) => {
@@ -118,6 +118,38 @@ client.onParcelsSensing(parcels => {
     }
 } )
 
+client.onAgentsSensing( ( agents ) => {
+    // agents_map.x = agents.map( ( {x} ) => {
+    //     return x
+    // } );
+    // agents_map.y = agents.map( ( {y} ) => {
+    //     return y
+    // } );
+    // agents_map.id = agents.map( ( {id} ) => {
+    //     return id
+    // } );
+    const timeSeen = Date.now();
+
+    agents_map.forEach((value, key) => {
+        value.isNear = false;
+        if (timeSeen - value.timeSeen > 20000) {
+            agents_map.delete(key);
+        }
+    });
+
+    for (const agent of agents) {
+        agents_map.set(agent.id, { agent, timeSeen, isNear: true });
+        myAgent.maps.setAgent(agent.id, agent.x, agent.y, timeSeen)
+    }
+
+    if (myAgent.me.friendId && agents.length > 0) {
+        let msg = new Message();
+        msg.setHeader("INFO_AGENTS");
+        msg.setContent(agents);
+        client.say(myAgent.me.friendId, msg);
+    }
+} )
+
 let deliveryPoints = [];
 client.onMap( (height, width, coords) => {
     deliveryPoints = coords.filter(coord => coord.delivery);
@@ -128,22 +160,10 @@ client.onMap( (height, width, coords) => {
     myAgent.maps = maps;
 });
 
-client.onAgentsSensing( ( agents ) => {
-    agents_map.x = agents.map( ( {x} ) => {
-        return x
-    } );
-    agents_map.y = agents.map( ( {y} ) => {
-        return y
-    } );
-    agents_map.id = agents.map( ( {id} ) => {
-        return id
-    } );
-} )
-
 client.onMsg(async (id, name, msg, reply) => (
     // console.log('id: ', id),
     // console.log('msg: ', msg),
-    handleMsg(id, name, msg, reply, maps, client, myAgent, position_agents)
+    handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map)
 ));
 
 client.onConnect( async () => {   
