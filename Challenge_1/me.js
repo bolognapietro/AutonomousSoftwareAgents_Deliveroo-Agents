@@ -16,9 +16,9 @@ class Me {
         this.#particelsCarried = false;
         this.#previus_position = null;
         this.#map_particles = new Map();
-
         this.master = process.argv[3] === 'master'; // true if the agent is the master
         this.friendId = null;
+        this.stuckedFriend = false;
     }
 
     get numParticelsCarried() {

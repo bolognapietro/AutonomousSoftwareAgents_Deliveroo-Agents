@@ -1,3 +1,4 @@
+import fs from 'fs';
 function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
     const dx = Math.abs( Math.round(x1) - Math.round(x2) )
     const dy = Math.abs( Math.round(y1) - Math.round(y2) )
@@ -59,4 +60,13 @@ function stucked(dir1, dir2) {
     return false;
 }
 
-export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance, stucked };
+function readFile(path) {
+    return new Promise((res, rej) => {
+        fs.readFile(path, 'utf8', (err, data) => {
+            if (err) rej(err)
+            else res(data)
+        })
+    })
+}
+
+export { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance, stucked, readFile };

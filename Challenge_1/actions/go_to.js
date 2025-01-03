@@ -1,5 +1,6 @@
 import {client} from '../client_config.js';
 import Plans from '../plan.js'; 
+import Message from '../message.js';
 class GoTo extends Plans {
     constructor(parent, me, maps) {
         super(parent);
@@ -20,10 +21,29 @@ class GoTo extends Plans {
         if (shortestPath !== null) {
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {
-                await client.move(move);
+                completed = await client.move(move);
+            }
+            if (!completed) {
+                const agent_map = this.maps.getAgents();
+                for (const agent of agent_map) {
+                    if (agent.x == targetX && agent.y == targetY) {
+                        console.log('stucked with agent', agent.id);
+                        // Coop with my friend in order to unstuck
+                        if (agent.id === this.me.friendId && this.me.name === "slave" && !this.me.stuckedFriend ) {
+                            me.stuckedFriend = true
+                            console.log('stucked with my Friend');
+                            let msg = new Message();
+                            msg.setHeader("STUCKED_TOGETHER");
+                            const content = { direction: this.maps.getAnotherDir(this.me.x, this.me.y), path: shortestPath }
+                            msg.setContent(content);
+                            await client.say(this.me.friendId, msg);
+                            break;
+                        }
+                        break;
+                    }
+                }
             }
             return true; // Restituisci true se il percorso è stato completato con successo
-            count = 0; 
         } else {
             console.log("Impossibile trovare un percorso per raggiungere la particella.");
             return false; // Restituisci false se non è possibile trovare un percorso
@@ -62,7 +82,6 @@ class GoTo extends Plans {
         return null;
     }
 
-
     getValidNeighbors(x, y, map) {
         const neighbors = [];
         const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
@@ -81,6 +100,7 @@ class GoTo extends Plans {
     isValidPosition(myX, myY, map) {
         return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height && map.map.some(row => row.x === myX && row.y === myY);
     }
+
 }
 
 export default GoTo;

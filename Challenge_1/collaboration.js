@@ -1,5 +1,5 @@
 import Message from './message.js';
-import {distance} from './support_fn.js';
+import {distance, stucked} from './support_fn.js';
 
 async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map) {
 
@@ -55,6 +55,17 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
                 agents_map.set(agent.id, agent);
                 myAgent.maps.setAgent(agent.id, agent.x, agent.y, Date.now())
             }
+        }
+    }
+
+    if (msg.header === "STUCKED_TOGETHER" && myAgent.me.name === "master") {
+        myAgent.me.stuckedFriend = true;
+        const friendDirection = msg.content.direction;
+        const friendPath = msg.content.path;
+        const possibleDirection = maps.getPossibleDirection(myAgent.me.x, myAgent.me.y);
+
+        if (stucked(possibleDirection, friendDirection)) {
+           
         }
     }
 }

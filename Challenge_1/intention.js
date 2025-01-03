@@ -1,12 +1,20 @@
 import GoPutDown from './actions/put_down.js'
 import GoPickUp from './actions/pick_up.js'
 import GoTo from './actions/go_to.js'
+import PddlMove from './actions/pddl_move.js'
+
+const usePDDL = true;
 
 const planLibrary = []
 
+if (usePDDL) {
+    planLibrary.push(PddlMove)
+}
+else {
+    planLibrary.push(GoTo)
+}
 planLibrary.push(GoPickUp)
 planLibrary.push(GoPutDown)
-planLibrary.push(GoTo)
 
 class Intention {
 
