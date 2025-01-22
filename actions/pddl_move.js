@@ -2,9 +2,11 @@ import {client} from '../utils/client_config.js';
 import Plans from '../utils/plan.js'; 
 import Message from '../messages/message.js';
 import { readFile } from '../utils/support_fn.js';
-import { PddlProblem, onlineSolver } from "@unitn-asa/pddl-client";
+import { onlineSolver } from "@unitn-asa/pddl-client";
 
-let domain = await readFile('actions/domain.pddl');
+// Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
+// Terminal: actions/domain.pddl
+let domain = await readFile('actions/domain.pddl'); 
 
 class PddlMove extends Plans {
     constructor(parent, me, maps) {
@@ -18,32 +20,8 @@ class PddlMove extends Plans {
         return ['go_to', 'go_pick_up', 'go_put_down'].includes(move);
     }
 
-    async execute(go_to, x, y, pid) {
-        // Create the PDDL problem
-        // var pddlProblem = new PddlProblem(
-        //     'deliveroo',
-        //     this.maps.agent_beliefset.objects.  join(' '),
-        //     this.maps.agent_beliefset.toPddlString() + ' ' + '(at t' + this.me.x + '_' + this.me.y + ')',
-        //     goal
-        // );
-        // let problem = pddlProblem.toPddlString();
-        //-------------------------
-        // Define the PDDL goal
-        // if (go_to == 'go_to') {
-        //     var goal = `(at t${x}_${y})`;
-        // }
-        // else if (go_to == 'go_pick_up') {
-        //     var goal = `(carrying p${x})`;
-        // }
-        // else if (go_to == 'go_put_down') {
-        //     var goal = `(parcel at ${x})`;
-        // }
-        
+    async execute(go_to, x, y, pid) {        
         this.maps.update_beliefset();
-
-        // ------------------------------
-        // ----------- MY CODE ----------
-        // ------------------------------
 
         // Define the PDDL goal based on the task
         let goal = "";
@@ -164,30 +142,19 @@ class PddlMove extends Plans {
         }
 
         // Get the deliveries and parcels on the path to pick up or put down is pass through them
-        let deliveriesOnPath = [];
         let parcelsOnPath = [];
-
-        for (let del of this.maps.deliverPoints) {
+        for (let par of this.me.getParticle()) {
             for (let p of path) {
-                if (del.x == p.x && del.y == p.y) {
-                    deliveriesOnPath.push(del);
+                if (par[1].x == p.x && par[1].y == p.y && (p.x != x || p.y != y)) {
+                    parcelsOnPath.push(par);
                 }
             }
         }
 
-        //! ----- ERROR -----
-        // for (let par of this.me.map_particles) {
-        //     for (let p of path) {
-        //         if (par.x == p.x && par.y == p.y && (p.x != x && p.y != y)) {
-        //             parcelsOnPath.push(par);
-        //         }
-        //     }
-        // }
-
         // Start moving the agent to the target position
         let iteration = 0;
         while (iteration < pddlPlan.length) {
-            //! ----- RIVEDERE -----
+            //! ----- NON SERVE -----
             // if (deliveriesOnPath.some(del => {
             //     del.x === this.me.x && del.y === this.me.y
             // })) {
@@ -197,24 +164,20 @@ class PddlMove extends Plans {
             // }
 
             //! ----- RIVEDERE -----
-            // if (parcelsOnPath.some(par => {
-            //     par.x === this.me.x && par.y === this.me.y
-            // })) {
+            if (parcelsOnPath.some(par => { return par[1].x === this.me.x && par[1].y === this.me.y; })) {
+                console.log('parcelsOnPath');
+                // if (this.stopped) throw ['stopped']; // if stopped then quit
+                // Pickup the parcel
+                await client.pickup();
+                // if (this.stopped) throw ['stopped']; // if stopped then quit
 
-            //     if (this.stopped) throw ['stopped']; // if stopped then quit
-            //     // Pickup the parcel
-            //     await client.pickup();
-            //     if (this.stopped) throw ['stopped']; // if stopped then quit
-
-            //     // Add parcels to MyData.parcelsInMind if they match the current position
-            //     // parcelsOnPath.forEach(par => {
-            //     //     if (par.x === this.me.x && par.y === this.me.y) {
-            //     //         MyData.parcelsInMind.push(par.id);
-            //     //     }
-            //     // });
-
-            //     if (this.stopped) throw ['stopped']; // if stopped then quit
-            // }
+                // Add parcels to MyData.parcelsInMind if they match the current position
+                // parcelsOnPath.forEach(par => {
+                //     if (par.x === this.me.x && par.y === this.me.y) {
+                //         MyData.parcelsInMind.push(par.id);
+                //     }
+                // });
+            }
 
             // Get the next coordinate to move to
             let coordinate = path.shift()
@@ -240,29 +203,27 @@ class PddlMove extends Plans {
                 this.me.y = status_x.y;
             }
 
-            if (this.stopped) throw ['stopped']; // if stopped then quit
-
             if (coordinate.y > this.me.y)
                 status_y = await client.move('up')
             else if (coordinate.y < this.me.y)
                 status_y = await client.move('down')
-
+                
             if (status_y) {
                 this.me.x = status_y.x;
                 this.me.y = status_y.y;
             }
 
+            //! ----- RIVEDERE -----
             // If the agent is stucked, wait for 500ms and try again
-            if (!status_x && !status_y) {
-                this.log('stucked ', countStacked);
-                await timeout(500)
-                if (countStacked <= 0) {
-                    throw 'stopped';
-                } else {
-                    countStacked -= 1;
-                }
-
-            } 
+            // if (!status_x && !status_y) {
+            //     this.log('stucked ', countStacked);
+            //     await timeout(500)
+            //     if (countStacked <= 0) {
+            //         throw 'stopped';
+            //     } else {
+            //         countStacked -= 1;
+            //     }
+            // } 
             // else if (this.me.x == x && this.me.y == y) {
             //     // this.log('target reached');
             // }

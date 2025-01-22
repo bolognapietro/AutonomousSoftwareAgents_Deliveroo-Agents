@@ -198,7 +198,14 @@ class IntentionRevision {
         const random_pos = [[this.#maps.width/4, this.#maps.width/4], [this.#maps.width/4, 3*this.#maps.width/4], [3*this.#maps.width/4, this.#maps.width/4], [3*this.#maps.width/4, 3*this.#maps.width/4]];
         const randomIndex = Math.floor(Math.random() * random_pos.length);
         const selectedPosition = random_pos[randomIndex];
-        return [['go_to', selectedPosition[0], selectedPosition[1]]];
+        if (selectedPosition[0] == this.me.x && selectedPosition[1] == this.me.y) {
+            const newIndex = (randomIndex + 1) % random_pos.length;
+            const newSelectedPosition = random_pos[newIndex];
+            return [['go_to', newSelectedPosition[0], newSelectedPosition[1]]];
+        } 
+        else {
+            return [['go_to', selectedPosition[0], selectedPosition[1]]];
+        }
     }
 
     checkForParcels() {
