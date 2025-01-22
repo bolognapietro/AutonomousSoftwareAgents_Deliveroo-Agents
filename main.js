@@ -49,7 +49,7 @@ client.onParcelsSensing( async ( perceived_parcels ) => {
 
 // Event listener for detecting and selecting the nearest parcel
 client.onParcelsSensing(parcels => {
-    const options = [];
+    let options = [];
     const seenParcels = myAgent.get_parcerls_to_pickup();
     for (const parcel of parcels.values()) {
         if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
@@ -90,7 +90,8 @@ client.onParcelsSensing(parcels => {
     if ( myAgent.me.particelsCarried ) {
         let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
         if ( nearest >= distance(deliveryPoint, myAgent.me) ) { // If the nearest parcel is further than the nearest delivery point
-            myAgent.push([['go_put_down', deliveryPoint.x, deliveryPoint.y]]);
+            options = [['go_put_down', deliveryPoint.x, deliveryPoint.y]]
+            myAgent.push(options);
         }
         else {
             myAgent.push(options);
@@ -105,6 +106,7 @@ client.onParcelsSensing(parcels => {
         let msg = new Message();
         msg.setHeader("INFO_PARCELS");
         msg.setContent(options);
+        msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
         client.say(myAgent.me.friendId, msg);
     }
 } );
@@ -132,6 +134,7 @@ client.onAgentsSensing( ( agents ) => {
         let msg = new Message();
         msg.setHeader("INFO_AGENTS");
         msg.setContent(agents);
+        msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
         client.say(myAgent.me.friendId, msg);
     }
 } );

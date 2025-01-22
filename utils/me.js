@@ -5,6 +5,7 @@ class Me {
     #particelsCarried;
     #previus_position;
     #map_particles;
+    #currentIntention;
 
     constructor() {
         this.id = null;
@@ -19,6 +20,7 @@ class Me {
         this.master = process.argv[3] === 'master'; // true if the agent is the master
         this.friendId = null;
         this.stuckedFriend = false;
+        this.#currentIntention = null;
     }
 
     get numParticelsCarried() {
@@ -55,6 +57,22 @@ class Me {
 
     get get_coordinates() {
         return {x: this.x, y: this.y};
+    }
+
+    set currentIntention(predicate) {
+        this.#currentIntention = predicate;
+    }
+
+    get currentIntention() {
+        return this.#currentIntention;
+    }
+    
+    setCurrentIntention(predicate) {
+        this.#currentIntention = predicate;
+    }
+
+    getCurrentIntention() {
+        return this.#currentIntention;
     }
 
     getParticle() {

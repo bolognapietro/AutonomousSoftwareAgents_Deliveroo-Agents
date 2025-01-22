@@ -13,8 +13,8 @@ class Message {
         this.content = content;
     }
 
-    setSenderInfo({x: x, y: y, points: points}) {
-        this.senderInfo = {x: x, y: y, points: points};
+    setSenderInfo({name, x, y, points: points, timestamp}) {
+        this.senderInfo = {name, x, y, points, timestamp};
     }
 }
 

@@ -3,7 +3,7 @@ import GoPickUp from '../actions/pick_up.js'
 import GoTo from '../actions/go_to.js'
 import PddlMove from '../actions/pddl_move.js'
 
-const usePDDL = true;
+const usePDDL = false;
 
 const planLibrary = []
 
@@ -92,6 +92,7 @@ class Intention {
             // Check if the current plan class is applicable to the current intention's predicate.
             if (planClass.isApplicableTo(...this.predicate)) {
                 // console.log('PROVA SU PROVA ', this_me, planClass.name)
+                this.#me.setCurrentIntention(this.predicate)
                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
                 try {
