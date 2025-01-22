@@ -57,6 +57,10 @@ class Me {
         return {x: this.x, y: this.y};
     }
 
+    getParticle() {
+        return this.#map_particles;
+    }
+
     perceiveParticle(id, particle) {
         this.#map_particles.set(id, particle);
     }

@@ -3,7 +3,7 @@ import GoPickUp from '../actions/pick_up.js'
 import GoTo from '../actions/go_to.js'
 import PddlMove from '../actions/pddl_move.js'
 
-const usePDDL = false;
+const usePDDL = true;
 
 const planLibrary = []
 
@@ -95,7 +95,7 @@ class Intention {
                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
                 try {
-                    const plan_res = await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
+                    const plan_res =    await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
@@ -105,7 +105,7 @@ class Intention {
         }
     
         // If the intention has been stopped during the execution, throw an exception.
-        if (this.stopped) throw ['stopped intention', ...this.predicate];
+        if (this.   stopped) throw ['stopped intention', ...this.predicate];
         // If no plan was able to satisfy the intention, throw an exception indicating this.
         throw ['no plan satisfied the intention', ...this.predicate];
     }

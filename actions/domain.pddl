@@ -1,5 +1,5 @@
 ;; domain file: domain.pddl
-(define (domain default)
+(define (domain deliveroo)
     (:requirements :strips)
     (:predicates
         (down ?tile1 ?tile2)
@@ -31,12 +31,12 @@
         :precondition (and (at ?tile1) (right ?tile2 ?tile1))
         :effect (and (at ?tile2) (not (at ?tile1)))
     )
-    (:action pick-up
+    (:action go_pick_up
         :parameters (?p ?tile)
         :precondition (and (parcel_at ?p ?tile) (at ?tile) (not (carrying ?p)))
         :effect (and (carrying ?p) (not(parcel_at ?p ?tile)))
     )
-    (:action put-down
+    (:action go_put_down
         :parameters (?p ?tile)
         :precondition (and (at ?tile)(carrying ?p))
         :effect (and (parcel_at ?p ?tile) (not(carrying ?p)))
