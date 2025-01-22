@@ -4,7 +4,7 @@ import Message from '../messages/message.js';
 import { readFile } from '../utils/support_fn.js';
 import { PddlProblem, onlineSolver } from "@unitn-asa/pddl-client";
 
-let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl');
+let domain = await readFile('actions/domain.pddl');
 
 class PddlMove extends Plans {
     constructor(parent, me, maps) {
