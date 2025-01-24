@@ -100,9 +100,12 @@ client.onParcelsSensing(parcels => {
     else if ( best_option ) {
         myAgent.push(options);
     }
-    
+    // opposite sorted options
+    options = options.slice().reverse();
+
+    console.log('options reverse', options);
     // Send parcel information to teammates
-    if (myAgent.me.friendId && options.length > 0) {
+    if (myAgent.me.friendId && options.length > 2) {
         let msg = new Message();
         msg.setHeader("INFO_PARCELS");
         msg.setContent(options);

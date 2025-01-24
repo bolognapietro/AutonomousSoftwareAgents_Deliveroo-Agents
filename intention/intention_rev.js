@@ -1,4 +1,4 @@
-import c from 'spacy';
+// import c from 'spacy';
 import Intention from './intention.js';
 import * as fn  from '../utils/support_fn.js';
 
