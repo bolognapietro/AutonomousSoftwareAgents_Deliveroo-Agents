@@ -103,6 +103,9 @@ client.onParcelsSensing(parcels => {
     // opposite sorted options
     options = options.slice().reverse();
 
+    //if parcel in options are carriedby, rmeove them
+    options = options.filter(option => !parcels.get(option[3]).carriedBy);
+
     console.log('options reverse', options);
     // Send parcel information to teammates
     if (myAgent.me.friendId && options.length > 2) {
