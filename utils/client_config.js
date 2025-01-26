@@ -4,11 +4,12 @@ const configs = {
     host: "http://localhost:8080",
     token: {
         'agent1': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE4MWIzMTBmMmVjIiwibmFtZSI6ImFnZW50MSIsImlhdCI6MTczMTM5ODE4Mn0.RB_QTliRaYdBEpm-qx0xfMToynY-oYxfR9dlpmH0rH0',
-        'agent2': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxYjMxMGYyZWM1IiwibmFtZSI6ImFnZW50MiIsImlhdCI6MTczMTM5ODQ0MH0.89CKOv-SME9bzJjD5SryxnkNII2g7YMzUDE8xlJQ2-A'
+        'agent2': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxYjMxMGYyZWM1IiwibmFtZSI6ImFnZW50MiIsImlhdCI6MTczMTM5ODQ0MH0.89CKOv-SME9bzJjD5SryxnkNII2g7YMzUDE8xlJQ2-A',
+        'enemy': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjhkMTdmYWNlYWI4IiwibmFtZSI6ImVuZW15IiwiaWF0IjoxNzM3OTA1MzUzfQ.LnVFgqSZ5r9HRBlGDGMOgQlB0QsylY5GlgvHZ6eCFg0'
     }
 }
 
-const name = process.argv[2]; // agent1 or agent2
+const name = process.argv[2]; // agent1, agent2 or enemy
 const token = configs.token[name]; // token for the agent
 
 export const client = new DeliverooApi(

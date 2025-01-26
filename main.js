@@ -101,20 +101,20 @@ client.onParcelsSensing(parcels => {
         myAgent.push(options);
     }
     // opposite sorted options
-    options = options.slice().reverse();
+    // options = options.slice().reverse();
 
     //if parcel in options are carriedby, rmeove them
-    options = options.filter(option => !parcels.get(option[3]).carriedBy);
+    // options = options.filter(option => !parcels.get(option[3]).carriedBy);
 
-    console.log('options reverse', options);
+    // console.log('options reverse', options);
     // Send parcel information to teammates
-    if (myAgent.me.friendId && options.length > 2) {
-        let msg = new Message();
-        msg.setHeader("INFO_PARCELS");
-        msg.setContent(options);
-        msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-        client.say(myAgent.me.friendId, msg);
-    }
+    // if (myAgent.me.friendId && options.length > 2) {
+    //     let msg = new Message();
+    //     msg.setHeader("INFO_PARCELS");
+    //     msg.setContent(options);
+    //     msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+    //     client.say(myAgent.me.friendId, msg);
+    // }
 } );
 
 // Event listener for detecting other agents

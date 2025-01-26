@@ -13,10 +13,10 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
             msg.setContent("attacchiamo!");
             msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
             await client.say(id, msg, reply);
-            msg.setHeader("CURRENT_INTENTION");
-            msg.setContent(myAgent.me.currentIntention)
-            msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-            await client.say(id, msg)
+            // msg.setHeader("CURRENT_INTENTION");
+            // msg.setContent(myAgent.me.currentIntention)
+            // msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+            // await client.say(id, msg)
         }
         // If the agent is the master and the message content is 'attacchiamo!'
         // then set the friend id and send a message
@@ -24,14 +24,11 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
             myAgent.me.setFriendId(id);
             console.log('\n-------- HANDSHAKE COMPLETED --------');
             let msg = new Message();
-            msg.setHeader("START_JOB");
-            msg.setContent({ x: myAgent.me.x, y: myAgent.me.y });
-            msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
             await client.say(id, msg, reply);
-            msg.setHeader("CURRENT_INTENTION");
-            msg.setContent(myAgent.me.currentIntention)
-            msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-            await client.say(id, msg, reply)
+            // msg.setHeader("CURRENT_INTENTION");
+            // msg.setContent(myAgent.me.currentIntention)
+            // msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+            // await client.say(id, msg, reply)
         }
     }
 

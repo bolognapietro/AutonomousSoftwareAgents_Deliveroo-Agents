@@ -6,7 +6,7 @@ import { onlineSolver } from "@unitn-asa/pddl-client";
 
 // Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
 // Terminal: actions/domain.pddl
-let domain = await readFile('actions/domain.pddl'); 
+let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl'); 
 
 class PddlMove extends Plans {
     constructor(parent, me, maps) {
