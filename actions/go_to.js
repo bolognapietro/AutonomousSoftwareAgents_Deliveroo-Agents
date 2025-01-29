@@ -18,35 +18,44 @@ class GoTo extends Plans {
     async execute( go_to, targetX, targetY ){
         // console.log("GoTo me: ", targetX, targetY);
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
+        let completed = false
         var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps) 
         if (shortestPath !== null) {
             
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {
-                await client.move(move);
+                completed = await client.move(move);
             }
-            /*
+
+            // Se il percorso è stato completato con successo, restituisci true
+            if (completed.x === targetX && completed.y === targetY) {
+                completed = true
+            }
+            else {
+                completed = false
+            }
+
             if (!completed) {
                 const agent_map = this.maps.getAgents();
                 for (const agent of agent_map) {
                     if (agent.x == targetX && agent.y == targetY) {
                         console.log('stucked with agent', agent.id);
                         // Coop with my friend in order to unstuck
-                        if (agent.id === this.me.friendId && this.me.name === "slave" && !this.me.stuckedFriend ) {
-                            me.stuckedFriend = true
-                            console.log('stucked with my Friend');
+                        if (agent.id === this.me.friendId && !this.me.stuckedFriend ) {
+                            this.me.stuckedFriend = true
+                            // console.log('stucked with my Friend');
                             let msg = new Message();
                             msg.setHeader("STUCKED_TOGETHER");
                             const content = { direction: this.maps.getAnotherDir(this.me.x, this.me.y), path: shortestPath }
                             msg.setContent(content);
+                            msg.setSenderInfo({name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now()});
                             await client.say(this.me.friendId, msg);
-                            break;
+                            // break;
                         }
-                        break;
+                        // break;
                     }
                 }
             }
-            */
             return true; // Restituisci true se il percorso è stato completato con successo
         } else {
             console.log("Impossibile trovare un percorso per raggiungere la particella.");

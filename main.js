@@ -107,11 +107,11 @@ client.onParcelsSensing(parcels => {
     // options = options.filter(option => !parcels.get(option[3]).carriedBy);
 
     // console.log('options reverse', options);
-    // Send parcel information to teammates
+    //! Send parcel information to teammates
     // if (myAgent.me.friendId && options.length > 2) {
     //     let msg = new Message();
     //     msg.setHeader("INFO_PARCELS");
-    //     msg.setContent(options);
+    //     msg.setContent(options, myAgent.me.currentIntention);
     //     msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
     //     client.say(myAgent.me.friendId, msg);
     // }
@@ -129,7 +129,7 @@ client.onAgentsSensing( ( agents ) => {
         }
     });
 
-    // Update agent locations
+    // Update nearby agents informations
     for (const agent of agents) {
         agents_map.set(agent.id, { agent, timeSeen, isNear: true });
         myAgent.maps.setAgent(agent.id, agent.x, agent.y, timeSeen);

@@ -9,8 +9,14 @@ class Message {
         this.header = header;
     }
 
-    setContent(content) {
+    setContent(content, intention=null) {
         this.content = content;
+        if (intention == null) {
+            this.content = content;
+        }
+        else{
+            this.content = {content, intention};
+        }
     }
 
     setSenderInfo({name, x, y, points: points, timestamp}) {
