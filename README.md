@@ -20,16 +20,16 @@ Finally, open another terminal and go to the Project_AutonomousSoftwareAgents fo
 *Single agent scenario*
 ```bash
 cd Project_AutonomousSoftwareAgents/Challenge_1
-node prova_main.js agent1 
+node main.js agent1 
 ```
 
 *Multi-agent scenario*
 ```bash
 cd Project_AutonomousSoftwareAgents/Challenge_1
-node prova_main.js agent1 master
+node main.js agent1 master
 ```
 ```bash
 cd Project_AutonomousSoftwareAgents/Challenge_1
-node prova_main.js agent2 slave
+node main.js agent2 slave
 ```
 When you return to the web page you will notice that your agent will move autonomously (TODO)

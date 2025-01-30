@@ -98,6 +98,7 @@ class Intention {
                 try {
                     const plan_res =    await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
+                    this.#me.setCurrentIntention(null)
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
                     this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', error); // log any errors encountered during the execution of the plan.

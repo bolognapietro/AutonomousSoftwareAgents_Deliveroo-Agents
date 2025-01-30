@@ -52,7 +52,7 @@ client.onParcelsSensing(parcels => {
     let options = [];
     const seenParcels = myAgent.get_parcerls_to_pickup();
     for (const parcel of parcels.values()) {
-        if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
+        if (!parcel.carriedBy && !seenParcels.has(parcel.id) && parcel.reward > 2) {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
     }
@@ -107,14 +107,14 @@ client.onParcelsSensing(parcels => {
     // options = options.filter(option => !parcels.get(option[3]).carriedBy);
 
     // console.log('options reverse', options);
-    //! Send parcel information to teammates
-    // if (myAgent.me.friendId && options.length > 2) {
-    //     let msg = new Message();
-    //     msg.setHeader("INFO_PARCELS");
-    //     msg.setContent(options, myAgent.me.currentIntention);
-    //     msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-    //     client.say(myAgent.me.friendId, msg);
-    // }
+    // ! Send parcel information to teammates
+    if (myAgent.me.friendId && options.length > 2) {
+        let msg = new Message();
+        msg.setHeader("INFO_PARCELS");
+        msg.setContent(options, myAgent.me.currentIntention);
+        msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+        client.say(myAgent.me.friendId, msg);
+    }
 } );
 
 // Event listener for detecting other agents

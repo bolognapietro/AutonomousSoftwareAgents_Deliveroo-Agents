@@ -32,24 +32,27 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
 
     if (msg.header === 'INFO_PARCELS') {
         // see content and update the parcels if not already present
-        const seenParcels = myAgent.get_parcerls_to_pickup();
-        let new_parcels = msg.content.content; // particels seen by the teammate
-        const options = [];
-        // Check if the parcel is not carried by any agent and not already seen by me
-        for (const parcel of new_parcels) {
-            if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
-                options.push(['go_pick_up', parcel[1], parcel[2], parcel[3]]);
-            }
-        }
-        // Sort the options based on the distance from the agent
-        if ( options ) {
-            options.sort((a, b) => {
-                let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
-                let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
-                return distanceA - distanceB;
-            });
+        let new_parcels, last_intention = msg.content; // particels seen by the teammate
+        if (last_intention === null) {
+            const seenParcels = myAgent.get_parcerls_to_pickup();
+            const options = [];
+            // Check if the parcel is not carried by any agent and not already seen by me
             
-            myAgent.push(options);
+            for (const parcel of new_parcels) {
+                if (!parcel.carriedBy && !seenParcels.has(parcel.id) && parcel.rewards > 4) {
+                    options.push(['go_pick_up', parcel[1], parcel[2], parcel[3]]);
+                }
+            }
+            if ( options ) {
+                options.sort((a, b) => {
+                    let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
+                    let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
+                    return distanceA - distanceB;
+                });
+                console.log('---------------INFO----------\n', options[0]);
+                myAgent.push(options[0]);
+            }
+            // Sort the options based on the distance from the agent
         }
     }
 
