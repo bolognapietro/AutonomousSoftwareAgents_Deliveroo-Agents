@@ -32,8 +32,8 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
 
     if (msg.header === 'INFO_PARCELS') {
         // see content and update the parcels if not already present
-        let new_parcels, last_intention = msg.content; // particels seen by the teammate
-        if (last_intention === null) {
+        let new_parcels = msg.content; // particels seen by the teammate
+        if (myAgent.me.getCurrentIntention() === null) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
             const options = [];
             // Check if the parcel is not carried by any agent and not already seen by me
