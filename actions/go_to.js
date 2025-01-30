@@ -38,21 +38,33 @@ class GoTo extends Plans {
             if (!completed) {
                 const agent_map = this.maps.getAgents();
                 for (const agent of agent_map) {
-                    if (agent.x == targetX && agent.y == targetY) {
+                    // if the agent is 1 block away from me
+                    if (agent.x === this.me.x + 1 || agent.x === this.me.x - 1 || agent.y === this.me.y + 1 || agent.y === this.me.y - 1) {
                         console.log('stucked with agent', agent.id);
                         // Coop with my friend in order to unstuck
-                        if (agent.id === this.me.friendId && !this.me.stuckedFriend ) {
-                            this.me.stuckedFriend = true
-                            // console.log('stucked with my Friend');
+                        if (agent.id === this.me.friendId) { // && !this.me.stuckedFriend 
+                            // this.me.stuckedFriend = true
+                            console.log('stucked with my Friend');
                             let msg = new Message();
                             msg.setHeader("STUCKED_TOGETHER");
-                            const content = { direction: this.maps.getAnotherDir(this.me.x, this.me.y), path: shortestPath }
+                            // compute which agent is the one nearest to the center of the map
+                            const map_center = { x: Math.floor(this.maps.width / 2), y: Math.floor(this.maps.height / 2) };
+                            const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
+                            const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
+                            let content = "";
+                            if (distance_to_center > distance_to_center_friend) {
+                                content = "You have to move away";
+                            }
+                            else {
+                                content = "I have to move away";
+                            }
+                            // const content = { direction: this.maps.getAnotherDir(this.me.x, this.me.y), path: shortestPath }
                             msg.setContent(content);
                             msg.setSenderInfo({name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now()});
                             await client.say(this.me.friendId, msg);
-                            // break;
+                            break;
                         }
-                        // break;
+                        break;
                     }
                 }
             }

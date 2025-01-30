@@ -1,6 +1,21 @@
 import Message from './message.js';
 import {distance, stucked} from '../utils/support_fn.js';
 
+function moveToRandomPos(myAgent) {
+    // if (this.checkForParcels()) return;
+    const random_pos = [[myAgent.maps.width/4, myAgent.maps.width/4], [myAgent.maps.width/4, 3*myAgent.maps.width/4], [3*myAgent.maps.width/4, myAgent.maps.width/4], [3*myAgent.maps.width/4, 3*myAgent.maps.width/4]];
+    const randomIndex = Math.floor(Math.random() * random_pos.length);
+    const selectedPosition = random_pos[randomIndex];
+    if (selectedPosition[0] == myAgent.me.x && selectedPosition[1] == myAgent.me.y) {
+        const newIndex = (randomIndex + 1) % random_pos.length;
+        const newSelectedPosition = random_pos[newIndex];
+        return [['go_to', newSelectedPosition[0], newSelectedPosition[1]]];
+    } 
+    else {
+        return [['go_to', selectedPosition[0], selectedPosition[1]]];
+    }
+}
+
 async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map) {
 
     if (msg.header == 'HANDSHAKE') {
@@ -70,13 +85,20 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
 
     if (msg.header === "STUCKED_TOGETHER") {
         myAgent.me.stuckedFriend = true;
-        const friendDirection = msg.content.direction;
-        const friendPath = msg.content.path;
-        // const possibleDirection = myAgent.maps.getPossibleDirection(myAgent.me.x, myAgent.me.y);
-
-        // if (stucked(possibleDirection, friendDirection)) {
-           
-        // }
+        if (msg.content == "You have to move away") {
+            await client.putdown()
+            await new Promise(r => setTimeout(r, 1000));
+            myAgent.me.particelsCarried = false
+            let predicate = moveToRandomPos(myAgent);
+            myAgent.push(predicate);
+        }
+        else{
+            let msg = new Message();
+            msg.setHeader("STUCKED_TOGETHER");
+            msg.setContent("You have to move away");
+            msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+            await client.say(myAgent.me.friendId, msg);
+        }
     }
 }
 

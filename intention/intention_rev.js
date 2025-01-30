@@ -76,7 +76,8 @@ class IntentionRevision {
         let nearest_delivery_pt = Number.MAX_VALUE;
         
         for (const option of options) {
-            let [go_pick_up, x, y, id] = option;
+            let x = option[1];
+            let y = option[2];
             let current_d = fn.distance({x, y}, this.#me);
             if (current_d < nearest_parcel) {
                 predicate = option;
@@ -194,8 +195,46 @@ class IntentionRevision {
     }
 
     moveToRandomPos() {
-        // if (this.checkForParcels()) return;
-        const random_pos = [[this.#maps.width/4, this.#maps.width/4], [this.#maps.width/4, 3*this.#maps.width/4], [3*this.#maps.width/4, this.#maps.width/4], [3*this.#maps.width/4, 3*this.#maps.width/4]];
+        const mapData = this.#maps.map;
+        
+        // Step 1: Determine map boundaries
+        const minX = Math.min(...mapData.map(p => p.x));
+        const maxX = Math.max(...mapData.map(p => p.x));
+        const minY = Math.min(...mapData.map(p => p.y));
+        const maxY = Math.max(...mapData.map(p => p.y));
+
+        // Step 2: Compute quadrant boundaries
+        const midX = Math.floor((minX + maxX) / 2);
+        const midY = Math.floor((minY + maxY) / 2);
+
+        // Step 3: Split map into four blocks
+        const quadrants = {
+            topLeft: mapData.filter(p => p.x <= midX && p.y >= midY),
+            topRight: mapData.filter(p => p.x > midX && p.y >= midY),
+            bottomLeft: mapData.filter(p => p.x <= midX && p.y < midY),
+            bottomRight: mapData.filter(p => p.x > midX && p.y < midY),
+        };
+
+        // Step 4: Find the central point in each block
+        function findCentralPoint(region) {
+            if (region.length === 0) return null;
+    
+            // Find the point closest to the region’s center
+            const centerX = Math.round(region.reduce((sum, p) => sum + p.x, 0) / region.length);
+            const centerY = Math.round(region.reduce((sum, p) => sum + p.y, 0) / region.length);
+    
+            return region.reduce((best, p) => {
+            const dist = Math.abs(p.x - centerX) + Math.abs(p.y - centerY);
+            return best === null || dist < best.dist ? { ...p, dist } : best;
+            }, null);
+        }
+        
+        const available_pos = Object.values(quadrants).map(findCentralPoint).filter(p => p !== null);
+        const random_pos = [];
+        for (const p of available_pos) {
+            random_pos.push([p.x, p.y]);
+        }
+
         const randomIndex = Math.floor(Math.random() * random_pos.length);
         const selectedPosition = random_pos[randomIndex];
         if (selectedPosition[0] == this.me.x && selectedPosition[1] == this.me.y) {

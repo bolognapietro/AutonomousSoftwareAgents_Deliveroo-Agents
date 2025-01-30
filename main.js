@@ -86,28 +86,24 @@ client.onParcelsSensing(parcels => {
         }
     }
     
+    //! MIGHT BE REMOVED
     // Decide whether to deliver or pick up parcels
-    if ( myAgent.me.particelsCarried ) {
-        let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
-        if ( nearest >= distance(deliveryPoint, myAgent.me) ) { // If the nearest parcel is further than the nearest delivery point
-            options = [['go_put_down', deliveryPoint.x, deliveryPoint.y]]
-            myAgent.push(options);
-        }
-        else {
-            myAgent.push(options);
-        }
-    }
-    else if ( best_option ) {
-        myAgent.push(options);
-    }
-    // opposite sorted options
-    // options = options.slice().reverse();
-
-    //if parcel in options are carriedby, rmeove them
-    // options = options.filter(option => !parcels.get(option[3]).carriedBy);
-
-    // console.log('options reverse', options);
-    // ! Send parcel information to teammates
+    // if ( myAgent.me.particelsCarried ) {
+    //     let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
+    //     if ( nearest >= distance(deliveryPoint, myAgent.me) ) { // If the nearest parcel is further than the nearest delivery point
+    //         options = [['go_put_down', deliveryPoint.x, deliveryPoint.y]]
+    //         myAgent.push(options);
+    //     }
+    //     else {
+    //         myAgent.push(options);
+    //     }
+    // }
+    // else if ( best_option ) {
+    //     myAgent.push(options);
+    // }
+    myAgent.push(options);
+    
+    // Send parcel information to teammates
     if (myAgent.me.friendId && options.length > 2) {
         let msg = new Message();
         msg.setHeader("INFO_PARCELS");
