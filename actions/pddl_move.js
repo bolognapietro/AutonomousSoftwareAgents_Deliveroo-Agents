@@ -6,7 +6,7 @@ import { onlineSolver } from "@unitn-asa/pddl-client";
 
 // Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
 // Terminal: actions/domain.pddl
-let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl'); 
+let domain = await readFile('actions/domain.pddl'); 
 
 class PddlMove extends Plans {
     constructor(parent, me, maps) {
@@ -131,15 +131,6 @@ class PddlMove extends Plans {
                 y: parseInt(end[1])
             });
         });
-
-        // Set the countStacked to 1 if the agent is a SLAVE, otherwise to 12
-        // We use two different stucked because if the MASTER Stuck the SLAVE the SLAVE escape before the MASTER 
-        if (this.me.master) {
-            var countStacked = 12
-        }
-        else {
-            var countStacked = 2
-        }
 
         // Get the deliveries and parcels on the path to pick up or put down is pass through them
         let parcelsOnPath = [];

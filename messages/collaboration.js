@@ -64,8 +64,8 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
                     let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
                     return distanceA - distanceB;
                 });
-                console.log('---------------INFO----------\n', options[0]);
-                myAgent.push(options[0]);
+                //console.log('---------------INFO----------\n', options[0]);
+                //myAgent.push(options[0]);
             }
             // Sort the options based on the distance from the agent
         }

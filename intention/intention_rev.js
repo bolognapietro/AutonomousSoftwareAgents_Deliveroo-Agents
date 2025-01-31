@@ -69,7 +69,6 @@ class IntentionRevision {
         // Print my position and the options
         // console.log( 'My position: ', me.x, me.y );
         // console.log( 'Options: ', options );
-
         let predicate;
         let old_predicate;
         let nearest_parcel = Number.MAX_VALUE;
@@ -230,8 +229,15 @@ class IntentionRevision {
         }
         
         const available_pos = Object.values(quadrants).map(findCentralPoint).filter(p => p !== null);
+        const adjusted_pos = available_pos.map(p => {
+            const randomX = p.x + Math.floor(Math.random() * 9) - 4;
+            const randomY = p.y + Math.floor(Math.random() * 9) - 4;
+            const isValid = mapData.some(point => point.x === randomX && point.y === randomY);
+            return isValid ? { x: randomX, y: randomY } : p;
+        });
+        
         const random_pos = [];
-        for (const p of available_pos) {
+        for (const p of adjusted_pos) {
             random_pos.push([p.x, p.y]);
         }
 

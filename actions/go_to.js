@@ -17,13 +17,53 @@ class GoTo extends Plans {
 
     async execute( go_to, targetX, targetY ){
         // console.log("GoTo me: ", targetX, targetY);
+        
+        
         // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
         let completed = false
         var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps) 
         if (shortestPath !== null) {
+            let path = []
+            let actual = {x: this.me.x, y: this.me.y}
+            for (let i = 0; i <= shortestPath.length; i++) {
+                path.push([actual.x, actual.y])
+                if (shortestPath[i] === 'up') {
+                    actual.y += 1
+                } else if (shortestPath[i] === 'down') {
+                    actual.y -= 1
+                } else if (shortestPath[i] === 'left') {
+                    actual.x -= 1
+                } else if (shortestPath[i] === 'right') {
+                    actual.x += 1
+                }
+            }
+
+            let parcelsOnPath = [];
+            for (let par of this.me.getParticle()) {    // this.me.getParticle()
+                for (let p of path) {
+                    if (par[1].x == p.x && par[1].y == p.y && (p.x != x || p.y != y)) {
+                        parcelsOnPath.push(par);
+                    }
+                }
+            }
+
+            let deliveryPointsOnPath = [];
+            for (let del of this.maps.deliverPoints) {    // this.me.getParticle()
+                for (let p of path) {
+                    if (del.x == p[0] && del.y == p[1] && p != [del.x, del.y] && (del.x != this.me.x || del.y != this.me.y)) {
+                        deliveryPointsOnPath.push(del);
+                    }
+                }
+            }
             
             // Esegui le mosse per raggiungere la particella
             for (const move of shortestPath) {
+                if (parcelsOnPath.some(par => { return par[1].x === this.me.x && par[1].y === this.me.y; })) {
+                    await client.pickup();
+                }
+                if (deliveryPointsOnPath.some(del => { return del.x === Math.round(this.me.x) && del.y === Math.round(this.me.y); })) {
+                    await client.putdown();
+                }
                 completed = await client.move(move);
             }
 
