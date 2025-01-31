@@ -230,8 +230,8 @@ class IntentionRevision {
         
         const available_pos = Object.values(quadrants).map(findCentralPoint).filter(p => p !== null);
         const adjusted_pos = available_pos.map(p => {
-            const randomX = p.x + Math.floor(Math.random() * 9) - 4;
-            const randomY = p.y + Math.floor(Math.random() * 9) - 4;
+            const randomX = p.x + Math.floor(Math.random() * 13) - 6;
+            const randomY = p.y + Math.floor(Math.random() * 13) - 6;
             const isValid = mapData.some(point => point.x === randomX && point.y === randomY);
             return isValid ? { x: randomX, y: randomY } : p;
         });
