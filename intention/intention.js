@@ -16,48 +16,108 @@ else {
     planLibrary.push(GoPutDown)
 }
 
+/**
+ * Class representing an Intention.
+ */
 class Intention {
 
-    #current_plan; // stores the current plan being used to achieve the intention.
-    #stopped = false; // boolean indicating whether the intention has been stopped.
+    /**
+     * Stores the current plan being used to achieve the intention.
+     * @type {Object}
+     * @private
+     */
+    #current_plan;
 
-    //* Getter method allows external access to the private #stopped field to check if the intention has been stopped.
+    /**
+     * Boolean indicating whether the intention has been stopped.
+     * @type {boolean}
+     * @private
+     */
+    #stopped = false;
+
+    /**
+     * Getter method allows external access to the private #stopped field to check if the intention has been stopped.
+     * @returns {boolean} True if the intention has been stopped, otherwise false.
+     */
     get stopped () {
         return this.#stopped;
     }
-    
-    //* Method sets the #stopped field to true and stops the current plan if it exists.
+
+    /**
+     * Method sets the #stopped field to true and stops the current plan if it exists.
+     */
     stop () {
-        // this.log( 'stop intention', ...this.#predicate );
         this.#stopped = true;
         if ( this.#current_plan)
             this.#current_plan.stop();
     }
 
-    #parent; // reference to the parent object, typically the one managing or creating the intention.
-    
-    //* Getter method allows external access to the private #predicate field.
+    /**
+     * Reference to the parent object, typically the one managing or creating the intention.
+     * @type {Object}
+     * @private
+     */
+    #parent;
+
+    /**
+     * Getter method allows external access to the private #predicate field.
+     * @returns {Array} The predicate describing the intention details.
+     */
     get predicate () {
         return this.#predicate;
     }
-    #predicate; // specific details of the intention, usually in the form of an array like ['go_to', x, y].
 
+    /**
+     * Specific details of the intention, usually in the form of an array like ['go_to', x, y].
+     * @type {Array}
+     * @private
+     */
+    #predicate;
+
+    /**
+     * @type {Object}
+     * @private
+     */
     #me;
+
+    /**
+     * @type {Object}
+     * @private
+     */
     #maps;
 
+    /**
+     * Getter method for the #me field.
+     * @returns {Object} The #me object.
+     */
     get_me() {
         return this.#me;
     }
 
+    /**
+     * Getter method for the #maps field.
+     * @returns {Object} The #maps object.
+     */
     get_maps() {
         return this.#maps;
     }
 
+    /**
+     * Getter method for the arguments.
+     * @returns {Array} An array containing the #me and #maps objects.
+     */
     get_args() {
         return [this.#me, this.#maps];
     }
-    
-    //* Initializes an instance with a parent and a predicate. The parent is typically the object that manages this intention, and the predicate describes the intention details.
+
+    /**
+     * Initializes an instance with a parent and a predicate.
+     * The parent is typically the object that manages this intention, and the predicate describes the intention details.
+     * @param {Object} parent - The parent object managing this intention.
+     * @param {Array} predicate - The predicate describing the intention details.
+     * @param {Object} me - The object representing the agent.
+     * @param {Object} maps - The object representing the maps.
+     */
     constructor ( parent, predicate, me, maps ) {
         this.#parent = parent;
         this.#predicate = predicate;
@@ -65,7 +125,10 @@ class Intention {
         this.#maps = maps;
     }
 
-    // A utility method for logging. It uses the parent's log method if available; otherwise, it defaults to console.log
+    /**
+     * A utility method for logging. It uses the parent's log method if available; otherwise, it defaults to console.log.
+     * @param {...*} args - The arguments to log.
+     */
     log ( ...args ) {
         if ( this.#parent && this.#parent.log )
             this.#parent.log( '\t', ...args )
@@ -73,8 +136,18 @@ class Intention {
             console.log( ...args )
     }
 
-    #started = false; // boolean to ensure that the intention's achievement process is not started more than once.
+    /**
+     * Boolean to ensure that the intention's achievement process is not started more than once.
+     * @type {boolean}
+     * @private
+     */
+    #started = false;
 
+    /**
+     * Achieves the intention by iterating through each plan class available in the planLibrary.
+     * @returns {Promise<*>} The result of the plan execution.
+     * @throws Will throw an error if the intention is stopped or if no plan satisfies the intention.
+     */
     async achieve () {
         // Check if the intention has already started; if so, return the current instance to prevent re-execution.
         if (this.#started)
@@ -115,5 +188,4 @@ class Intention {
     }
 
 }
-
 export default Intention;

@@ -8,18 +8,43 @@ import { onlineSolver } from "@unitn-asa/pddl-client";
 // Terminal: actions/domain.pddl
 let domain = await readFile('actions/domain.pddl'); 
 
+/**
+ * Class representing a PDDL move action.
+ * @extends Plans
+ */
 class PddlMove extends Plans {
+    /**
+     * Create a PddlMove instance.
+     * @param {Object} parent - The parent object.
+     * @param {Object} me - The agent object.
+     * @param {Object} maps - The maps object.
+     */
     constructor(parent, me, maps) {
         super(parent);
         this.me = me;
         this.maps = maps;
-        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
     }
 
+    /**
+     * Check if the move is applicable.
+     * @param {string} move - The move type.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @param {string} id - The parcel id.
+     * @returns {boolean} True if the move is applicable, false otherwise.
+     */
     static isApplicableTo(move, x, y, id) {
         return ['go_to', 'go_pick_up', 'go_put_down'].includes(move);
     }
 
+    /**
+     * Execute the move action.
+     * @param {string} go_to - The move type.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @param {string} pid - The parcel id.
+     * @returns {Promise<boolean>} True if the move was successful, false otherwise.
+     */
     async execute(go_to, x, y, pid) {        
         this.maps.update_beliefset();
 
@@ -145,29 +170,11 @@ class PddlMove extends Plans {
         // Start moving the agent to the target position
         let iteration = 0;
         while (iteration < pddlPlan.length) {
-            //! ----- NON SERVE -----
-            // if (deliveriesOnPath.some(del => {
-            //     del.x === this.me.x && del.y === this.me.y
-            // })) {
-            //     if (this.stopped) throw ['stopped']; // if stopped then quit
-            //     await client.putdown()
-            //     if (this.stopped) throw ['stopped']; // if stopped then quit
-            // }
 
-            //! ----- RIVEDERE -----
+            // Check if there is a parcel to pick up on the path
             if (parcelsOnPath.some(par => { return par[1].x === this.me.x && par[1].y === this.me.y; })) {
                 console.log('parcelsOnPath');
-                // if (this.stopped) throw ['stopped']; // if stopped then quit
-                // Pickup the parcel
                 await client.pickup();
-                // if (this.stopped) throw ['stopped']; // if stopped then quit
-
-                // Add parcels to MyData.parcelsInMind if they match the current position
-                // parcelsOnPath.forEach(par => {
-                //     if (par.x === this.me.x && par.y === this.me.y) {
-                //         MyData.parcelsInMind.push(par.id);
-                //     }
-                // });
             }
 
             // Get the next coordinate to move to
@@ -175,6 +182,7 @@ class PddlMove extends Plans {
             let status_x = false;
             let status_y = false;
 
+            // Check if the agent is at the target position
             if (coordinate.x == this.me.x && coordinate.y == this.me.y) {
                 if (go_to == 'go_pick_up'){
                     await client.pickup();
@@ -184,11 +192,11 @@ class PddlMove extends Plans {
                 }
             }
 
+            // Move the agent to the next coordinate
             if (coordinate.x > this.me.x)
                 status_x = await client.move('right')
             else if (coordinate.x < this.me.x)
                 status_x = await client.move('left')
-
             if (status_x) {
                 this.me.x = status_x.x;
                 this.me.y = status_x.y;
@@ -198,26 +206,11 @@ class PddlMove extends Plans {
                 status_y = await client.move('up')
             else if (coordinate.y < this.me.y)
                 status_y = await client.move('down')
-                
             if (status_y) {
                 this.me.x = status_y.x;
                 this.me.y = status_y.y;
             }
 
-            //! ----- RIVEDERE -----
-            // If the agent is stucked, wait for 500ms and try again
-            // if (!status_x && !status_y) {
-            //     this.log('stucked ', countStacked);
-            //     await timeout(500)
-            //     if (countStacked <= 0) {
-            //         throw 'stopped';
-            //     } else {
-            //         countStacked -= 1;
-            //     }
-            // } 
-            // else if (this.me.x == x && this.me.y == y) {
-            //     // this.log('target reached');
-            // }
             iteration++;
         }
         return true;

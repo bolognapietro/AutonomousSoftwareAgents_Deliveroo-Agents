@@ -1,7 +1,6 @@
 import { client } from './utils/client_config.js';
 import Me from './utils/me.js';
 import Maps from './utils/map.js';
-import { distance, findNearestDeliveryPoint, isValidPosition, findPointsAtDistance } from './utils/support_fn.js';
 import IntentionRevision from './intention/intention_rev.js';
 import Message from './messages/message.js';
 import { handleMsg } from './messages/collaboration.js';
@@ -34,17 +33,11 @@ client.onMap( (height, width, coords) => {
 
 // Event listener for detecting parcels
 client.onParcelsSensing( async ( perceived_parcels ) => {
-    let count = 0;
+    // let count = 0;
     for (const p of perceived_parcels) {
         parcels.set( p.id, p); // Store parcel data
-        myAgent.me.perceiveParticle(p.id, p); 
-        if (p.carriedBy == me.id) {
-            count++;
-        }
+        myAgent.me.perceiveParticle(p.id, p);
     }
-
-    myAgent.me.numParticelsCarried = count;
-    myAgent.me.particelsCarried = count > 0;
 } );
 
 // Event listener for detecting and selecting the nearest parcel
@@ -56,51 +49,7 @@ client.onParcelsSensing(parcels => {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
     }
-    
-    let best_option;
-    let nearest = Number.MAX_VALUE;
-    
-    // Find the closest parcel
-    for (const option of options) {
-        if (option[0] === 'go_pick_up') {
-            let [go_pick_up, x, y, id] = option;
-            let current_d = distance({x, y}, myAgent.me);
-            if (current_d < nearest) {
-                best_option = option;
-                nearest = current_d;
-            }
-        }
-    }
-    
-    // Sort options by distance
-    let goPickUpOptions = options.filter(option => option[0] === 'go_pick_up');
-    goPickUpOptions.sort((a, b) => distance({ x: a[1], y: a[2] }, myAgent.me) - distance({ x: b[1], y: b[2] }, myAgent.me));
-    
-    // Select the best option
-    for (const option of goPickUpOptions) {
-        let [go_pick_up, x, y, id] = option;
-        let current_d = distance({ x, y }, myAgent.me);
-        if (current_d < nearest) {
-            best_option = option;
-            nearest = current_d;
-        }
-    }
-    
-    //! MIGHT BE REMOVED
-    // Decide whether to deliver or pick up parcels
-    // if ( myAgent.me.particelsCarried ) {
-    //     let deliveryPoint = findNearestDeliveryPoint(myAgent.me, myAgent.maps.getDeliverPoints(), false);
-    //     if ( nearest >= distance(deliveryPoint, myAgent.me) ) { // If the nearest parcel is further than the nearest delivery point
-    //         options = [['go_put_down', deliveryPoint.x, deliveryPoint.y]]
-    //         myAgent.push(options);
-    //     }
-    //     else {
-    //         myAgent.push(options);
-    //     }
-    // }
-    // else if ( best_option ) {
-    //     myAgent.push(options);
-    // }
+
     myAgent.push(options);
     
     // Send parcel information to teammates

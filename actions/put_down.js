@@ -1,17 +1,43 @@
 import {client} from '../utils/client_config.js';
 import Plan from '../utils/plan.js';
+
+/**
+ * Class representing a plan to put down an item.
+ * @extends Plan
+ */
 class GoPutDown extends Plan {
+    /**
+     * Create a GoPutDown plan.
+     * @param {Object} parent - The parent object.
+     * @param {Object} me - The agent executing the plan.
+     * @param {Object} maps - The maps object.
+     */
     constructor(parent, me, maps) {
         super(parent);
         this.me = me;
         this.maps = maps;
-        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
     }
 
-    static isApplicableTo ( move, x, y, id  ) {
+    /**
+     * Check if the plan is applicable to the given move.
+     * @param {string} move - The move to check.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @param {string} id - The identifier.
+     * @returns {boolean} - True if the plan is applicable, false otherwise.
+     */
+    static isApplicableTo(move, x, y, id) {
         return 'go_put_down' == move;
     }
 
+    /**
+     * Execute the plan to put down an item.
+     * @param {string} put_down - The action to put down.
+     * @param {number} x - The x-coordinate to move to.
+     * @param {number} y - The y-coordinate to move to.
+     * @returns {Promise<boolean>} - True if the plan is successfully executed, false otherwise.
+     * @throws {Array<string>} - Throws 'stopped' if the plan is stopped.
+     */
     async execute ( put_down, x, y ) {
         // Check if the plan has been stopped.
         if (this.stopped) 
@@ -33,8 +59,7 @@ class GoPutDown extends Plan {
         // this.me.numParticelsCarried -= 1;
         // parcelCarriedByMe = false;
         return true; 
-    }
-
+    }  
 }
 
 export default GoPutDown;

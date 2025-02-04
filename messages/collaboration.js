@@ -1,8 +1,20 @@
 import Message from './message.js';
-import {distance, stucked} from '../utils/support_fn.js';
+import {distance} from '../utils/support_fn.js';
 
-function moveToRandomPos(myAgent) {
-    // if (this.checkForParcels()) return;
+/**
+ * Moves the agent to a random position on the map.
+ * The map is divided into four quadrants, and the agent will move to one of the quadrant centers.
+ * If the agent is already at the selected position, it will move to the next position in the list.
+ *
+ * @param {Object} myAgent - The agent object.
+ * @param {Object} myAgent.maps - The map object containing the width of the map.
+ * @param {number} myAgent.maps.width - The width of the map.
+ * @param {Object} myAgent.me - The agent's current position.
+ * @param {number} myAgent.me.x - The agent's current x-coordinate.
+ * @param {number} myAgent.me.y - The agent's current y-coordinate.
+ * @returns {Array} An array containing the action 'go_to' and the coordinates [x, y] to move the agent to.
+ */
+function simpleMoveToRandomPos(myAgent) {
     const random_pos = [[myAgent.maps.width/4, myAgent.maps.width/4], [myAgent.maps.width/4, 3*myAgent.maps.width/4], [3*myAgent.maps.width/4, myAgent.maps.width/4], [3*myAgent.maps.width/4, 3*myAgent.maps.width/4]];
     const randomIndex = Math.floor(Math.random() * random_pos.length);
     const selectedPosition = random_pos[randomIndex];
@@ -16,11 +28,23 @@ function moveToRandomPos(myAgent) {
     }
 }
 
+/**
+ * Handles incoming messages and performs actions based on the message header and content.
+ *
+ * @param {string} id - The ID of the sender.
+ * @param {string} name - The name of the sender.
+ * @param {Object} msg - The message object containing header and content.
+ * @param {Function} reply - The function to reply to the message.
+ * @param {Object} maps - The maps object for the agent.
+ * @param {Object} client - The client object to communicate with other agents.
+ * @param {Object} myAgent - The agent object representing the current agent.
+ * @param {Map} agents_map - A map of perceived agents.
+ * @returns {Promise<void>} - A promise that resolves when the message handling is complete.
+ */
 async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map) {
 
     if (msg.header == 'HANDSHAKE') {
-        // If the agent is not the master and the message content is 'attacchiamo?'
-        // then set the friend id and send a message to the master
+        // If the agent is the SLAVE and the message content is 'attacchiamo?' then set the friend_id and send a message to the MASTER
         if (!myAgent.me.master && msg.content == 'attacchiamo?') {
             myAgent.me.setFriendId(id);
             let msg = new Message();
@@ -28,30 +52,19 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
             msg.setContent("attacchiamo!");
             msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
             await client.say(id, msg, reply);
-            // msg.setHeader("CURRENT_INTENTION");
-            // msg.setContent(myAgent.me.currentIntention)
-            // msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-            // await client.say(id, msg)
         }
-        // If the agent is the master and the message content is 'attacchiamo!'
-        // then set the friend id and send a message
+        // If the agent is the MASTER and the message content is 'attacchiamo!' then set the friend_id
         if (myAgent.me.master && msg.content == 'attacchiamo!') {
             myAgent.me.setFriendId(id);
             console.log('\n-------- HANDSHAKE COMPLETED --------');
-            // msg.setHeader("CURRENT_INTENTION");
-            // msg.setContent(myAgent.me.currentIntention)
-            // msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
-            // await client.say(id, msg, reply)
         }
     }
 
     if (msg.header === 'INFO_PARCELS') {
-        // see content and update the parcels if not already present
-        let new_parcels = msg.content; // particels seen by the teammate
+        let new_parcels = msg.content;
         if (myAgent.me.getCurrentIntention() === null) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
             const options = [];
-            // Check if the parcel is not carried by any agent and not already seen by me
             
             for (const parcel of new_parcels) {
                 if (!parcel.carriedBy && !seenParcels.has(parcel.id) && parcel.rewards > 4) {
@@ -64,10 +77,7 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
                     let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
                     return distanceA - distanceB;
                 });
-                //console.log('---------------INFO----------\n', options[0]);
-                //myAgent.push(options[0]);
             }
-            // Sort the options based on the distance from the agent
         }
     }
 
@@ -75,8 +85,6 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
         let perceived_agents = msg.content;
         for (const agent of perceived_agents) {
             if (agent.id !== myAgent.me.id) {
-                // Update the enemy agent information received 
-                // from the message content of the teammate
                 agents_map.set(agent.id, agent);
                 myAgent.maps.setAgent(agent.id, agent.x, agent.y, Date.now())
             }
@@ -89,7 +97,7 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
             await client.putdown()
             await new Promise(r => setTimeout(r, 1000));
             myAgent.me.particelsCarried = false
-            let predicate = moveToRandomPos(myAgent);
+            let predicate = simpleMoveToRandomPos(myAgent);
             myAgent.push(predicate);
         }
         else{

@@ -2,44 +2,70 @@ import {client} from '../utils/client_config.js';
 import Plans from '../utils/plan.js'; 
 import Message from '../messages/message.js';
 
-class GoTo extends Plans {
+/**
+ * Class representing a GoTo action plan.
+ * @extends Plans
+ */
+class GoTo extends Plans{
+    /**
+     * Create a GoTo plan.
+     * @param {Object} parent - The parent object.
+     * @param {Object} me - The agent executing the plan.
+     * @param {Object} maps - The map object containing the environment details.
+     */
     constructor(parent, me, maps) {
         super(parent);
         this.me = me;
         this.maps = maps;
-        // console.log('prova meArray nel costruttore di GoTo: ', this.me); // Aggiungi un log nel costruttore
-        // console.log('prova meArray nel costruttore di GoTo: ', this.maps); // Aggiungi un log nel costruttore
     }
 
+    /**
+     * Check if the GoTo plan is applicable to the given move.
+     * @param {string} move - The move to check.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @param {string} id - The identifier.
+     * @returns {boolean} True if the move is 'go_to', otherwise false.
+     */
     static isApplicableTo ( move, x, y, id ) {
         return 'go_to' == move;
     }
 
-    async execute( go_to, targetX, targetY ){
-        // console.log("GoTo me: ", targetX, targetY);
+    /**
+     * Execute the GoTo plan to move to the target coordinates.
+     * @param {string} go_to - The move type.
+     * @param {number} targetX - The target x-coordinate.
+     * @param {number} targetY - The target y-coordinate.
+     * @returns {Promise<boolean>} True if the path was completed successfully, otherwise false.
+     */
+    async execute(go_to, targetX, targetY) {
+        // Use BFS to find the shortest path to the target coordinates
+        this.maps.update_beliefset();
         
+        let completed = false;
+        var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps);
         
-        // Utilizza l'algoritmo BFS per trovare il percorso più breve verso la particella
-        let completed = false
-        var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps) 
         if (shortestPath !== null) {
-            let path = []
-            let actual = {x: this.me.x, y: this.me.y}
+            let path = [];
+            let actual = { x: this.me.x, y: this.me.y };
+            
+            // Build the path based on the shortest path found
             for (let i = 0; i <= shortestPath.length; i++) {
-                path.push([actual.x, actual.y])
+                path.push([actual.x, actual.y]);
                 if (shortestPath[i] === 'up') {
-                    actual.y += 1
+                    actual.y += 1;
                 } else if (shortestPath[i] === 'down') {
-                    actual.y -= 1
+                    actual.y -= 1;
                 } else if (shortestPath[i] === 'left') {
-                    actual.x -= 1
+                    actual.x -= 1;
                 } else if (shortestPath[i] === 'right') {
-                    actual.x += 1
+                    actual.x += 1;
                 }
             }
 
+            // Find parcels on the path
             let parcelsOnPath = [];
-            for (let par of this.me.getParticle()) {    // this.me.getParticle()
+            for (let par of this.me.getParticle()) {
                 for (let p of path) {
                     if (par[1].x == p.x && par[1].y == p.y && (p.x != x || p.y != y)) {
                         parcelsOnPath.push(par);
@@ -47,8 +73,9 @@ class GoTo extends Plans {
                 }
             }
 
+            // Find delivery points on the path
             let deliveryPointsOnPath = [];
-            for (let del of this.maps.deliverPoints) {    // this.me.getParticle()
+            for (let del of this.maps.deliverPoints) {
                 for (let p of path) {
                     if (del.x == p[0] && del.y == p[1] && p != [del.x, del.y] && (del.x != this.me.x || del.y != this.me.y)) {
                         deliveryPointsOnPath.push(del);
@@ -56,51 +83,51 @@ class GoTo extends Plans {
                 }
             }
             
-            // Esegui le mosse per raggiungere la particella
+            // Execute the moves to reach the target
             for (const move of shortestPath) {
+                // Pick up parcels if found on the path
                 if (parcelsOnPath.some(par => { return par[1].x === this.me.x && par[1].y === this.me.y; })) {
                     await client.pickup();
                 }
+                // Put down parcels if at delivery points
                 if (deliveryPointsOnPath.some(del => { return del.x === Math.round(this.me.x) && del.y === Math.round(this.me.y); })) {
                     await client.putdown();
                 }
+                // Move the agent
                 completed = await client.move(move);
             }
 
-            // Se il percorso è stato completato con successo, restituisci true
+            // Check if the path was completed successfully
             if (completed.x === targetX && completed.y === targetY) {
-                completed = true
-            }
-            else {
-                completed = false
+                completed = true;
+            } else {
+                completed = false;
             }
 
+            // Handle case where agent is stuck with another agent
             if (!completed) {
                 const agent_map = this.maps.getAgents();
                 for (const agent of agent_map) {
-                    // if the agent is 1 block away from me
+                    // Check if the agent is 1 block away
                     if (agent.x === this.me.x + 1 || agent.x === this.me.x - 1 || agent.y === this.me.y + 1 || agent.y === this.me.y - 1) {
-                        console.log('stucked with agent', agent.id);
-                        // Coop with my friend in order to unstuck
-                        if (agent.id === this.me.friendId) { // && !this.me.stuckedFriend 
-                            // this.me.stuckedFriend = true
-                            console.log('stucked with my Friend');
+                        console.log('stuck with agent', agent.id);
+                        // Cooperate with friend agent to unstuck
+                        if (agent.id === this.me.friendId) {
+                            console.log('stuck with my Friend');
                             let msg = new Message();
                             msg.setHeader("STUCKED_TOGETHER");
-                            // compute which agent is the one nearest to the center of the map
+                            // Determine which agent is closer to the center of the map
                             const map_center = { x: Math.floor(this.maps.width / 2), y: Math.floor(this.maps.height / 2) };
                             const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
                             const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
                             let content = "";
                             if (distance_to_center > distance_to_center_friend) {
                                 content = "You have to move away";
-                            }
-                            else {
+                            } else {
                                 content = "I have to move away";
                             }
-                            // const content = { direction: this.maps.getAnotherDir(this.me.x, this.me.y), path: shortestPath }
                             msg.setContent(content);
-                            msg.setSenderInfo({name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now()});
+                            msg.setSenderInfo({ name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now() });
                             await client.say(this.me.friendId, msg);
                             break;
                         }
@@ -108,22 +135,28 @@ class GoTo extends Plans {
                     }
                 }
             }
-            return true; // Restituisci true se il percorso è stato completato con successo
+            return true; // Return true if the path was completed successfully
         } else {
-            console.log("Impossibile trovare un percorso per raggiungere la particella.");
-            return false; // Restituisci false se non è possibile trovare un percorso
+            console.log("Unable to find a path to the target.");
+            return false; // Return false if no path is found
         }
     }
 
+    /**
+     * Find the shortest path from the agent's current position to the target coordinates using BFS.
+     * @param {number} agentX - The agent's current x-coordinate.
+     * @param {number} agentY - The agent's current y-coordinate.
+     * @param {number} targetX - The target x-coordinate.
+     * @param {number} targetY - The target y-coordinate.
+     * @param {Object} map - The map object containing the environment details.
+     * @returns {Promise<Array<string>|null>} The sequence of moves to reach the target, or null if no path is found.
+     */
     async findShortestPath(agentX, agentY, targetX, targetY, map) {
-        // console.log("FindShortestPath maps: ", map);
-        // console.log("FindShortestPath agentX: ", agentX, agentY, targetX, targetY);
         const queue = [{ x: agentX, y: agentY, moves: [] }];
         const visited = new Set();
 
         while (queue.length > 0) {
             const { x, y, moves } = queue.shift();
-
             if (x === targetX && y === targetY) {
                 // Hai trovato la particella. Restituisci la sequenza di mosse.
                 // console.log("Trovata particella: ", moves);
@@ -147,6 +180,13 @@ class GoTo extends Plans {
         return null;
     }
 
+    /**
+     * Get the valid neighboring positions from the current position.
+     * @param {number} x - The current x-coordinate.
+     * @param {number} y - The current y-coordinate.
+     * @param {Object} map - The map object containing the environment details.
+     * @returns {Array<Object>} An array of valid neighboring positions and their corresponding moves.
+     */
     getValidNeighbors(x, y, map) {
         const neighbors = [];
         const moves = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'left'], [1, 0, 'right']];
@@ -162,10 +202,16 @@ class GoTo extends Plans {
         return neighbors;
     }
 
+    /**
+     * Check if the given position is valid within the map.
+     * @param {number} myX - The x-coordinate to check.
+     * @param {number} myY - The y-coordinate to check.
+     * @param {Object} map - The map object containing the environment details.
+     * @returns {boolean} True if the position is valid, otherwise false.
+     */
     isValidPosition(myX, myY, map) {
         return myX >= 0 && myX < map.width && myY >= 0 && myY < map.height && map.map.some(row => row.x === myX && row.y === myY);
     }
-
 }
 
 export default GoTo;

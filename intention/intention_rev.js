@@ -2,55 +2,72 @@
 import Intention from './intention.js';
 import * as fn  from '../utils/support_fn.js';
 
+/**
+ * Class representing an IntentionRevision.
+ */
 class IntentionRevision {
     #me;
     #maps;
-    // #parcels = new Map();
+    #intention_queue = new Array(); // private field to store the queue of intentions.
+    #lastMoveTime = Date.now();
+    #moveInterval = 5000;
 
+    list_parcel = [];
+
+    /**
+     * Creates an instance of IntentionRevision.
+     * @param {Object} me - The agent instance.
+     * @param {Object} maps - The maps instance.
+     */
     constructor(me, maps){
         this.#me = me
         this.#maps = maps
     }
 
+    /**
+     * Gets the agent instance.
+     * @returns {Object} The agent instance.
+     */
     get me() {
         return this.#me;
     }
 
+    /**
+     * Sets the agent instance.
+     * @param {Object} value - The new agent instance.
+     */
     set me(value) {
         this.#me = value;
     }
-    
+
+    /**
+     * Gets the maps instance.
+     * @returns {Object} The maps instance.
+     */
     get maps(){
         return this.#maps;
     }
 
+    /**
+     * Sets the maps instance.
+     * @param {Object} values - The new maps instance.
+     */
     set maps(values){
         this.#maps = values;
     }
 
-    #intention_queue = new Array(); // private field to store the queue of intentions.
-
-    #lastMoveTime = Date.now();
-    #moveInterval = 5000;
-    #first = false;
-
-    list_parcel = [];
-    
-    //* Getter method to access the private intention queue.
+    /**
+     * Gets the private intention queue.
+     * @returns {Array} The intention queue.
+     */
     get intention_queue () {
         return this.#intention_queue; 
     }
 
-    // #parcels_picked_up_friend = new Array();
-
-    // get parcels_picked_up_friend() {
-    //     return this.#parcels_picked_up_friend;
-    // }
-
-    // set parcels_picked_up_friend(value) {
-    //     this.#parcels_picked_up_friend = value;
-    // }
-
+    /**
+     * Gets the parcels to pick up.
+     * @returns {Map} The parcels to pick up.
+     */
     get_parcerls_to_pickup() {
         const parcels = new Map();
         for (let intention of this.intention_queue) {
@@ -65,10 +82,12 @@ class IntentionRevision {
         return parcels
     }
 
+    /**
+     * Pushes a new intention to the queue.
+     * @param {Array} options - The options for the new intention.
+     * @returns {Promise<void>}
+     */
     async push ( options ) {
-        // Print my position and the options
-        // console.log( 'My position: ', me.x, me.y );
-        // console.log( 'Options: ', options );
         let predicate;
         let old_predicate;
         let nearest_parcel = Number.MAX_VALUE;
@@ -126,7 +145,10 @@ class IntentionRevision {
         console.log('\n');
     }
 
-    //* Infinite loop to continuously process intentions.
+    /**
+     * Infinite loop to continuously process intentions.
+     * @returns {Promise<void>}
+     */
     async loop () {
         while (true) {
             if (this.intention_queue.length > 0) {
@@ -143,16 +165,6 @@ class IntentionRevision {
                     console.log( 'Skipping intention because no more valid', intention.predicate )
                     continue;
                 }
-                // if (intention.predicate.length == 4) {
-                //     let id = intention.predicate[3];
-                //     let p = this.#me.getParticleById(id)
-                //     // console.log('id:', id, 'p:', p);
-                    
-                //     if (p && p.carriedBy) {
-                //         console.log('Skipping intention because no more valid', intention.predicate);
-                //         continue;
-                //     }
-                // }
         
                 await intention.achieve()
                     .catch(error => {
@@ -163,18 +175,6 @@ class IntentionRevision {
                 this.#lastMoveTime = Date.now();
             } 
             else {
-                // if (Date.now() - this.#lastMoveTime > this.#moveInterval && !this.#first) {
-                //     // console.log('No intentions, moving randomly');
-                //     this.moveToPreviusPos();
-                //     this.#lastMoveTime = Date.now();
-                //     this.#first = true;
-                //     this.#moveInterval = 3000;
-                // }
-                // else if (Date.now() - this.#lastMoveTime > this.#moveInterval && this.#first) {
-                //     // console.log('No intentions, moving randomly');
-                //     this.moveToRandomPos();
-                //     this.#lastMoveTime = Date.now();
-                // }
                 if (Date.now() - this.#lastMoveTime > this.#moveInterval) {
                     // console.log('No intentions, moving randomly');
                     const movement = this.moveToRandomPos()
@@ -186,13 +186,10 @@ class IntentionRevision {
         }
     }
 
-    moveToPreviusPos() {
-        // if (this.checkForParcels()) {
-
-        // }
-        return ['go_to', this.#me.previus_position.x, this.#me.previus_position.y];
-    }
-
+    /**
+     * Moves the agent to a random position.
+     * @returns {Array} The movement intention.
+     */
     moveToRandomPos() {
         const mapData = this.#maps.map;
         
@@ -253,64 +250,39 @@ class IntentionRevision {
         }
     }
 
+    /**
+     * Checks for nearby parcels.
+     * @returns {boolean} True if a parcel is found, false otherwise.
+     */
     checkForParcels() {
         const parcels = this.#me.map_particels;
         
         for (let [id, parcel] of parcels.entries()) {
             if (!parcel.carriedBy && this.isNearby(parcel)) {
                 list_parcel.push(['go_pick_up', parcel.x, parcel.y, id]);
-                // myAgent.push(['go_pick_up', parcel.x, parcel.y, id]);
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * Checks if a parcel is nearby.
+     * @param {Object} parcel - The parcel to check.
+     * @returns {boolean} True if the parcel is nearby, false otherwise.
+     */
     isNearby(parcel) {
         const distance = Math.sqrt((parcel.x - this.#me.x) ** 2 + (parcel.y - this.#me.y) ** 2);
-        return distance <= 1; // Adjust the distance threshold as needed
+        return distance <= 1; 
     }
-    
 
-    // async push ( predicate ) { }
-    
+    /**
+     * Logs messages to the console.
+     * @param {...any} args - The messages to log.
+     */
     log ( ...args ) {
         console.log( ...args )
     }
-
 }
-
-/** 
- ** This approach is useful in scenarios where the most recent intention always takes precedence, 
- ** and immediate action is required, making it more dynamic compared to IntentionRevisionQueue.
- */
-// class IntentionRevisionReplace extends IntentionRevision {
-
-//     async push ( predicate ) {
-//         const last = this.intention_queue.at( this.intention_queue.length - 1 ); // get the last intention in the queue.
-        
-//         // If the last intention is the same as the new one, return without adding it.
-//         if ( (last && last.predicate.join(' ') == predicate.join(' ')) ) {
-//             return; 
-//         }
-       
-//         console.log( '\nIntentionRevisionReplace.push', predicate ); // log the action of pushing a new intention.
-//         // console.log( '\nothers', this.me, this.maps ); // log the action of pushing a new intention.
-//         const intention = new Intention( this, predicate, this.me, this.maps ); // create a new Intention object.
-//         console.log( 'intention', intention.predicate, intention.get_me() ); // log the new intention.
-//         this.intention_queue.push( intention ); // add the new intention to the queue.
-        
-//         // this.intention_queue.forEach(async (intent) => {
-//         //     console.log(`for each -> ${intent.predicate}`);
-//         // });
-        
-//         // Stop the last intention if it exists.
-//         if ( last ) { //&& distance({x: me.x, y: me.y}, {x: last.predicate[1], y: last.predicate[2]}) > distance({x: me.x, y: me.y}, {x: predicate[1], y: predicate[2]})
-//             last.stop();
-//             console.log( 'IntentionRevisionReplace.stop', last.predicate ); // log the stopping of the last intention.
-//         }
-//     }
-
-// }
 
 export default IntentionRevision;
