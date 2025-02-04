@@ -1,4 +1,4 @@
-import Intention from "../intention/intention.js";
+import Intention from "../intentions/intention.js";
 
 /**
  * Class representing a collection of plans.
