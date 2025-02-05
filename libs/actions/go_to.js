@@ -132,8 +132,8 @@ class GoTo extends Plans{
                             await client.say(this.me.friendId, msg);
                             break;
                         }
-                        else{
-                            // try to reach the second near delivery point
+                        else{ // there is another agent that is not the friend
+                            // case: agent has to deliver parcerls but the delivery point is blocked by another agent (not the friend)
                             if (this.me.particelsCarried){
                                 let deliveryPoints = this.maps.getDeliverPoints();
                                 deliveryPoints.sort((a, b) => distance(this.me, a) - distance(this.me, b));
