@@ -1,7 +1,7 @@
 import { client } from './libs/utils/client_config.js';
 import Me from './libs/utils/me.js';
 import Maps from './libs/utils/map.js';
-import IntentionRevision from './libs/intention/intention_rev.js';
+import IntentionRevision from './libs/intentions/intention_rev.js';
 import Message from './libs/messages/message.js';
 import { handleMsg } from './libs/messages/collaboration.js';
 
@@ -103,4 +103,4 @@ client.onConnect( async () => {
         msg.setContent("attacchiamo?");
         await client.shout(msg);
     }
-} );
+} ); 
