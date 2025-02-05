@@ -186,9 +186,11 @@ class PddlMove extends Plans {
             if (coordinate.x == this.me.x && coordinate.y == this.me.y) {
                 if (go_to == 'go_pick_up'){
                     await client.pickup();
+                    this.me.particelsCarried = true;
                 }
                 else if (go_to == 'go_put_down'){
                     await client.putdown();
+                    this.me.particelsCarried = false;
                 }
             }
 

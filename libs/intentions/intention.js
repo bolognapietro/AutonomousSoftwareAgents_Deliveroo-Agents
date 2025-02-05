@@ -3,7 +3,7 @@ import GoPickUp from '../actions/pick_up.js'
 import GoTo from '../actions/go_to.js'
 import PddlMove from '../actions/pddl_move.js'
 
-const usePDDL = false;
+const usePDDL = true;
 
 const planLibrary = []
 
