@@ -1,32 +1,5 @@
 import Message from './message.js';
-import {distance} from '../utils/support_fn.js';
-
-/**
- * Moves the agent to a random position on the map.
- * The map is divided into four quadrants, and the agent will move to one of the quadrant centers.
- * If the agent is already at the selected position, it will move to the next position in the list.
- *
- * @param {Object} myAgent - The agent object.
- * @param {Object} myAgent.maps - The map object containing the width of the map.
- * @param {number} myAgent.maps.width - The width of the map.
- * @param {Object} myAgent.me - The agent's current position.
- * @param {number} myAgent.me.x - The agent's current x-coordinate.
- * @param {number} myAgent.me.y - The agent's current y-coordinate.
- * @returns {Array} An array containing the action 'go_to' and the coordinates [x, y] to move the agent to.
- */
-function simpleMoveToRandomPos(myAgent) {
-    const random_pos = [[myAgent.maps.width/4, myAgent.maps.width/4], [myAgent.maps.width/4, 3*myAgent.maps.width/4], [3*myAgent.maps.width/4, myAgent.maps.width/4], [3*myAgent.maps.width/4, 3*myAgent.maps.width/4]];
-    const randomIndex = Math.floor(Math.random() * random_pos.length);
-    const selectedPosition = random_pos[randomIndex];
-    if (selectedPosition[0] == myAgent.me.x && selectedPosition[1] == myAgent.me.y) {
-        const newIndex = (randomIndex + 1) % random_pos.length;
-        const newSelectedPosition = random_pos[newIndex];
-        return [['go_to', newSelectedPosition[0], newSelectedPosition[1]]];
-    } 
-    else {
-        return [['go_to', selectedPosition[0], selectedPosition[1]]];
-    }
-}
+import {distance, simpleMoveToRandomPos} from '../utils/support_fn.js';
 
 /**
  * Handles incoming messages and performs actions based on the message header and content.
@@ -64,7 +37,7 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
 
     if (msg.header === 'INFO_PARCELS') {
         let new_parcels = msg.content;
-        if (msg.senderInfo.name != myAgent.me.name && !myAgent.me.notmoving) {
+        if (msg.senderInfo.name != myAgent.me.name && !myAgent.me.notMoving) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
             
             // order new_parcels by distance from agent

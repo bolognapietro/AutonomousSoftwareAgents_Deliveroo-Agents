@@ -165,7 +165,7 @@ class Intention {
             // Check if the current plan class is applicable to the current intention's predicate.
             if (planClass.isApplicableTo(...this.predicate)) {
                 // console.log('PROVA SU PROVA ', this_me, planClass.name)
-                this.#me.notmoving(true)
+                this.#me.notMoving(true)
                 this.#me.setCurrentIntention(this.predicate)
                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
@@ -175,7 +175,7 @@ class Intention {
                     if (plan_res === false){
                         break;
                     }
-                    this.#me.notmoving(false)
+                    this.#me.notMoving(false)
                     //! this.#me.setCurrentIntention(null)
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {

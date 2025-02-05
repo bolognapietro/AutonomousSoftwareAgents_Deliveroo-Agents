@@ -24,7 +24,7 @@ class Me {
      * @private
      * @type {boolean}
      */
-    #notmoving;
+    #notMoving;
 
     /**
      * Creates an instance of Me.
@@ -40,7 +40,7 @@ class Me {
         this.#particelsCarried = false;
         this.#map_particles = new Map();
         this.#currentIntention = null;
-        this.#notmoving = false;
+        this.#notMoving = false;
     }
 
     /**
@@ -95,16 +95,16 @@ class Me {
      * Sets whether the agent is not moving.
      * @param {boolean} value
      */
-    notmoving(value) {
-        this.#notmoving = value;
+    notMoving(value) {
+        this.#notMoving = value;
     }
 
     /**
      * Gets whether the agent is not moving.
      * @returns {boolean}
      */
-    notmoving() {
-        return this.#notmoving;
+    notMoving() {
+        return this.#notMoving;
     }
 
     /**
