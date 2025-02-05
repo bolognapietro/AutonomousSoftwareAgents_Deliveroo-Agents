@@ -64,20 +64,19 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
 
     if (msg.header === 'INFO_PARCELS') {
         let new_parcels = msg.content;
-        if (msg.senderInfo.name != myAgent.me.name && myAgent.me.getCurrentIntention() === null) {
+        if (msg.senderInfo.name != myAgent.me.name && !myAgent.me.notmoving) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
-            let nearest = new_parcels[0];
+            
+            // order new_parcels by distance from agent
+            new_parcels.sort((a, b) => distance(myAgent.me, a) - distance(myAgent.me, b)); 
+
             for (const parcel of new_parcels) {
-                if (!parcel.carriedBy && !seenParcels.has(parcel.id) && parcel.rewards > 4) {
-                    let distanceA = distance({ x: nearest[1], y: nearest[2] }, myAgent.me);
-                    let distanceB = distance({ x: parcel[1], y: parcel[2] }, myAgent.me);
-                    if (distanceB < distanceA) {
-                        nearest = parcel;
+                if (!parcel.carriedBy && !seenParcels.has(parcel.id)) {
+                    if ( parcel.rewards > 4 || distance({ x: parcel[1], y: parcel[2] }, myAgent.me) < 20){
+                        myAgent.push(['go_to', parcel[1], parcel[2], parcel[3]]);
+                        break;
                     }
                 }
-            }
-            if (nearest && distance({ x: nearest[1], y: nearest[2] }, myAgent.me) < 20) {
-                myAgent.push(['go_to', nearest[1], nearest[2], nearest[3]]);
             }
         }
     }
@@ -93,7 +92,6 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
     }
 
     if (msg.header === "STUCKED_TOGETHER") {
-        myAgent.me.stuckedFriend = true;
         if (msg.content == "You have to move away") {
             await client.putdown()
             await new Promise(r => setTimeout(r, 1000));

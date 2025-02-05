@@ -21,6 +21,12 @@ class Me {
     #currentIntention;
 
     /**
+     * @private
+     * @type {boolean}
+     */
+    #notmoving;
+
+    /**
      * Creates an instance of Me.
      */
     constructor() {
@@ -34,6 +40,7 @@ class Me {
         this.#particelsCarried = false;
         this.#map_particles = new Map();
         this.#currentIntention = null;
+        this.#notmoving = false;
     }
 
     /**
@@ -82,6 +89,22 @@ class Me {
      */
     set currentIntention(predicate) {
         this.#currentIntention = predicate;
+    }
+
+    /**
+     * Sets whether the agent is not moving.
+     * @param {boolean} value
+     */
+    notmoving(value) {
+        this.#notmoving = value;
+    }
+
+    /**
+     * Gets whether the agent is not moving.
+     * @returns {boolean}
+     */
+    notmoving() {
+        return this.#notmoving;
     }
 
     /**

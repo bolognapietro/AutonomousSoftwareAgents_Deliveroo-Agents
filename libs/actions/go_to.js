@@ -1,6 +1,7 @@
 import {client} from '../utils/client_config.js';
 import Plans from '../utils/plan.js'; 
 import Message from '../messages/message.js';
+import {distance} from '../utils/support_fn.js';
 
 /**
  * Class representing a GoTo action plan.
@@ -130,6 +131,22 @@ class GoTo extends Plans{
                             msg.setSenderInfo({ name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now() });
                             await client.say(this.me.friendId, msg);
                             break;
+                        }
+                        else{
+                            // try to reach the second near delivery point
+                            if (this.me.particelsCarried){
+                                let deliveryPoints = this.maps.getDeliverPoints();
+                                deliveryPoints.sort((a, b) => distance(this.me, a) - distance(this.me, b));
+                                //push the second near delivery point
+                                let saving_coord ;
+                                for (const del of deliveryPoints) {
+                                    if (del.x != agent.x && del.y != agent.y){
+                                        saving_coord = del;
+                                        break;
+                                    }
+                                }
+                                await this.subIntention(['go_put_down', saving_coord.x, saving_coord.y], this.me, this.maps); 
+                            }
                         }
                         break;
                     }
