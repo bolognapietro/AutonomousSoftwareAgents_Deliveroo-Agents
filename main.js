@@ -49,9 +49,6 @@ client.onParcelsSensing(parcels => {
             options.push(['go_pick_up', parcel.x, parcel.y, parcel.id]);
         }
     }
-
-    myAgent.push(options);
-    
     // Send parcel information to teammates
     if (myAgent.me.friendId && options.length > 2) {
         let msg = new Message();
@@ -60,6 +57,9 @@ client.onParcelsSensing(parcels => {
         msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
         client.say(myAgent.me.friendId, msg);
     }
+
+    myAgent.push(options);
+    
 } );
 
 // Event listener for detecting other agents

@@ -56,27 +56,28 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
         // If the agent is the MASTER and the message content is 'attacchiamo!' then set the friend_id
         if (myAgent.me.master && msg.content == 'attacchiamo!') {
             myAgent.me.setFriendId(id);
-            console.log('\n-------- HANDSHAKE COMPLETED --------');
+            console.log('\n-------- HANDSHAKE COMPLETED--------');
+            console.log(msg.senderInfo.name + ' is now my friend!');
+            console.log('-----------------------------------');
         }
     }
 
     if (msg.header === 'INFO_PARCELS') {
         let new_parcels = msg.content;
-        if (myAgent.me.getCurrentIntention() === null) {
+        if (msg.senderInfo.name != myAgent.me.name && myAgent.me.getCurrentIntention() === null) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
-            const options = [];
-            
+            let nearest = new_parcels[0];
             for (const parcel of new_parcels) {
                 if (!parcel.carriedBy && !seenParcels.has(parcel.id) && parcel.rewards > 4) {
-                    options.push(['go_pick_up', parcel[1], parcel[2], parcel[3]]);
+                    let distanceA = distance({ x: nearest[1], y: nearest[2] }, myAgent.me);
+                    let distanceB = distance({ x: parcel[1], y: parcel[2] }, myAgent.me);
+                    if (distanceB < distanceA) {
+                        nearest = parcel;
+                    }
                 }
             }
-            if ( options ) {
-                options.sort((a, b) => {
-                    let distanceA = distance({ x: a[1], y: a[2] }, myAgent.me);
-                    let distanceB = distance({ x: b[1], y: b[2] }, myAgent.me);
-                    return distanceA - distanceB;
-                });
+            if (nearest && distance({ x: nearest[1], y: nearest[2] }, myAgent.me) < 20) {
+                myAgent.push(['go_to', nearest[1], nearest[2], nearest[3]]);
             }
         }
     }

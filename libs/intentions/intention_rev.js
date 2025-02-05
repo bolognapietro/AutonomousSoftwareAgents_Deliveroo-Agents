@@ -10,7 +10,7 @@ class IntentionRevision {
     #maps;
     #intention_queue = new Array(); // private field to store the queue of intentions.
     #lastMoveTime = Date.now();
-    #moveInterval = 5000;
+    #moveInterval = 6000;
 
     list_parcel = [];
 
@@ -274,6 +274,14 @@ class IntentionRevision {
     isNearby(parcel) {
         const distance = Math.sqrt((parcel.x - this.#me.x) ** 2 + (parcel.y - this.#me.y) ** 2);
         return distance <= 1; 
+    }
+
+    arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) return false;
+        }
+        return true;
     }
 
     /**

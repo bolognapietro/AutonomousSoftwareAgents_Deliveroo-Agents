@@ -174,6 +174,7 @@ class Intention {
                     if (plan_res === false){
                         break;
                     }
+                    this.#me.setCurrentIntention(null)
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
                     this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', error); // log any errors encountered during the execution of the plan.
