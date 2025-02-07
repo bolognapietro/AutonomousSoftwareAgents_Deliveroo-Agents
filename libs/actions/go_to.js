@@ -1,7 +1,7 @@
 import {client} from '../utils/client_config.js';
 import Plans from '../utils/plan.js'; 
 import Message from '../messages/message.js';
-import {distance} from '../utils/support_fn.js';
+import {distance, findNearestDeliveryPoint} from '../utils/support_fn.js';
 
 /**
  * Class representing a GoTo action plan.
@@ -111,7 +111,7 @@ class GoTo extends Plans{
                 for (const agent of agent_map) {
                     // Check if the agent is 1 block away
                     if (agent.x === this.me.x + 1 || agent.x === this.me.x - 1 || agent.y === this.me.y + 1 || agent.y === this.me.y - 1) {
-                        console.log('stuck with agent', agent.id);
+                        console.log('stuck with agent', agent.id, agent.x, agent.y);
                         // Cooperate with friend agent to unstuck
                         if (agent.id === this.me.friendId) {
                             console.log('stuck with my Friend');
@@ -132,20 +132,18 @@ class GoTo extends Plans{
                             await client.say(this.me.friendId, msg);
                             break;
                         }
-                        else{ // there is another agent that is not the friend
-                            // case: agent has to deliver parcerls but the delivery point is blocked by another agent (not the friend)
-                            if (this.me.particelsCarried){
-                                let deliveryPoints = this.maps.getDeliverPoints();
-                                deliveryPoints.sort((a, b) => distance(this.me, a) - distance(this.me, b));
-                                //push the second near delivery point
-                                let saving_coord ;
-                                for (const del of deliveryPoints) {
-                                    if (del.x != agent.x && del.y != agent.y){
-                                        saving_coord = del;
-                                        break;
-                                    }
-                                }
-                                await this.subIntention(['go_put_down', saving_coord.x, saving_coord.y], this.me, this.maps); 
+                        else{
+                            // the enemy is on a delivery point
+                            if (this.me.particelsCarried && deliveryPointsOnPath.some(del => { return del.x === Math.round(agent.x) && del.y === Math.round(agent.y); })) {
+                                // go to second nearest delivery point
+                                let deliveryPoint = this.maps.deliverPoints;
+                                let delivery_no_enemy = deliveryPoint.filter(del => del.x !== Math.round(agent.x) && del.y !== Math.round(agent.y));
+                                let second_nearest_delivery = findNearestDeliveryPoint(this.me, delivery_no_enemy);
+                                console.log('Second nearest delivery point', second_nearest_delivery);
+                                await client.putdown()
+                                await client.pickup()
+                                await this.execute('go_to', second_nearest_delivery.x, second_nearest_delivery.y);
+                                break;
                             }
                         }
                         break;

@@ -170,7 +170,7 @@ class Intention {
                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
                 try {
-                    const plan_res =    await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
+                    const plan_res = await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
                     if (plan_res === false){
                         break;
