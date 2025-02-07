@@ -47,9 +47,9 @@ class GoTo extends Plans{
         var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps);
         
         if (shortestPath !== null) {
-            let path = [];
             let actual = { x: this.me.x, y: this.me.y };
-            
+            let path = [];
+        
             // Build the path based on the shortest path found
             for (let i = 0; i <= shortestPath.length; i++) {
                 path.push([actual.x, actual.y]);
@@ -121,12 +121,24 @@ class GoTo extends Plans{
                             const map_center = { x: Math.floor(this.maps.width / 2), y: Math.floor(this.maps.height / 2) };
                             const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
                             const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
+
+                            const possible_move = this.maps.getPossibleDirection(this.me.x, this.me.y);
+                            const possibile_move_friend = this.maps.getPossibleDirection(agent.x, agent.y);
+                            
                             let content = "";
-                            if (distance_to_center > distance_to_center_friend) {
+                            if (distance_to_center > distance_to_center_friend && possibile_move_friend.length > 0) {
                                 content = "You have to move away";
-                            } else {
+                            } 
+                            else if (distance_to_center < distance_to_center_friend && possible_move.length > 0) {
                                 content = "I have to move away";
                             }
+                            else if (possibile_move_friend.length > 0){
+                                content = "You have to move away";
+                            }
+                            else if (possible_move.length > 0){
+                                content = "I have to move away";
+                            }
+                            
                             msg.setContent(content);
                             msg.setSenderInfo({ name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now() });
                             await client.say(this.me.friendId, msg);

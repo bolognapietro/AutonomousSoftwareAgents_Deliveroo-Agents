@@ -28,6 +28,8 @@ class Maps {
         this.map = coords;
         this.deliverPoints = delPoints;
         this.agent_beliefset = new Beliefset();
+        // value_coords full of 0
+        this.value_coords = Array.from({ length: this.width }, () => Array.from({ length: this.height }, () => 0));
     }
 
     /**
@@ -38,6 +40,14 @@ class Maps {
      */
     get(x, y) {
         return this.map[x][y];
+    }
+
+    setValue(x, y, value){
+        this.value_coords[y][x] = value;
+    }
+
+    getVal(x, y){
+        return this.value_coords[y][x];
     }
 
     /**
@@ -96,6 +106,44 @@ class Maps {
                 }
             }
         }
+    }
+
+    /**
+     * this method returns the possible directions wher an agent can go from a given point
+     * @param {float} x - Coordinate x of the agent 
+     * @param {float} y - Coordinate y of the agent 
+     * @returns possible direction of the agent
+     */
+    getPossibleDirection(x, y) {
+
+        let directions = [];
+        if (x > 0 && this.getVal(x - 1, y) !== undefined && this.getVal(x - 1, y) !== 0) {
+            directions.push({ x: x - 1, y: y, name: "left" });
+        }
+        if (x < this.width && this.getVal(x + 1, y) !== undefined && this.getVal(x + 1, y) !== 0) {
+            directions.push({ x: x + 1, y: y, name: "right" });
+        }
+        if (y > 0 && this.getVal(x, y - 1) !== undefined && this.getVal(x, y - 1) !== 0) {
+            directions.push({ x: x, y: y - 1, name: "down" });
+        }
+        if (y < this.height && this.getVal(x, y + 1) !== undefined && this.getVal(x, y + 1) !== 0) {
+            directions.push({ x: x, y: y + 1, name: "up" });
+        }
+
+        const maps_agent = this.getAgents();
+        const possibleDirections = [];
+        for (let i = 0; i < directions.length; i++) {
+            let can_move = true
+            for (let j = 0; j < maps_agent.length; j++) {
+                if (maps_agent[j].x === directions[i].x && maps_agent[j].y === directions[i].y) {
+                    can_move = false;
+                    break;
+                }
+            }
+            if (can_move) possibleDirections.push(directions[i]);
+        }
+
+        return possibleDirections;
     }
 }
 

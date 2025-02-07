@@ -27,7 +27,18 @@ client.onYou( ( {id, name, x, y, score} ) => {
 let deliveryPoints = [];
 client.onMap( (height, width, coords) => {
     deliveryPoints = coords.filter(coord => coord.delivery);
+
+    
     var maps = new Maps(width, height, coords, deliveryPoints);
+    //set the values of the map 
+    // for each coordins in the map, set the value of the map
+   coords.forEach(coord => {
+        if (coord.delivery) {
+            maps.setValue(coord.x, coord.y, 2);
+        } else {
+            maps.setValue(coord.x, coord.y, 1);
+        }
+    });
     myAgent.maps = maps;
 });
 
