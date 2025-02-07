@@ -65,12 +65,26 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
     }
 
     if (msg.header === "STUCKED_TOGETHER") {
-        if (msg.content == "You have to move away") {
-            await client.putdown()
-            await new Promise(r => setTimeout(r, 1000));
-            myAgent.me.particelsCarried = false
-            let predicate = simpleMoveToRandomPos(myAgent);
-            myAgent.push(predicate);
+        console.log("-------------------- \n I'm stucked together with " + msg.senderInfo.name )
+        console.log("\n\tCONTENT: " + msg.content   + "\n --------------------");
+        let content = msg.content
+        // let infos = msg.content.intention
+        if (content == "You have to move away") {
+            const possible_move = myAgent.maps.getPossibleDirection(myAgent.me.x, myAgent.me.y);
+            if (possible_move.length == 0) {
+                let msg = new Message();
+                msg.setHeader("STUCKED_TOGETHER");
+                msg.setContent("You have to move away");
+                msg.setSenderInfo({name: myAgent.me.name, x: myAgent.me.x, y: myAgent.me.y, points: myAgent.me.score, timestamp: Date.now()});
+                await client.say(myAgent.me.friendId, msg);
+            }
+            else {
+                await client.putdown()
+                await new Promise(r => setTimeout(r, 1000));
+                myAgent.me.particelsCarried = false
+                let predicate = simpleMoveToRandomPos(myAgent);
+                myAgent.push(predicate);
+            }
         }
         else{
             let msg = new Message();
@@ -103,10 +117,10 @@ function simpleMoveToRandomPos(myAgent) {
     if (selectedPosition[0] == myAgent.me.x && selectedPosition[1] == myAgent.me.y) {
         const newIndex = (randomIndex + 1) % random_pos.length;
         const newSelectedPosition = random_pos[newIndex];
-        return [['go_to', newSelectedPosition[0], newSelectedPosition[1]]];
+        return [['go_to', Math.round(newSelectedPosition[0]), Math.round(newSelectedPosition[1])]];
     } 
     else {
-        return [['go_to', selectedPosition[0], selectedPosition[1]]];
+        return [['go_to', Math.round(selectedPosition[0]), Math.round(selectedPosition[1])]];
     }
 }
 

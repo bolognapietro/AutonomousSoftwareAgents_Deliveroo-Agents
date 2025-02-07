@@ -6,7 +6,7 @@ import { onlineSolver } from "@unitn-asa/pddl-client";
 
 // Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
 // Terminal: actions/domain.pddl
-let domain = await readFile('libs/actions/domain.pddl'); 
+let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/libs/actions/domain.pddl'); 
 
 /**
  * Class representing a PDDL move action.
@@ -215,7 +215,54 @@ class PddlMove extends Plans {
 
             iteration++;
         }
-        return true;
+        if (x == this.me.x && y == this.me.y) return true;
+        else {
+            const agent_map = this.maps.getAgents();
+            for (const agent of agent_map) {
+                // Check if the agent is 1 block away
+                if (agent.x === this.me.x + 1 || agent.x === this.me.x - 1 || agent.y === this.me.y + 1 || agent.y === this.me.y - 1) {
+                    console.log('stuck with agent', agent.id, agent.x, agent.y);
+                    // Cooperate with friend agent to unstuck
+                    if (agent.id === this.me.friendId) {
+                        console.log('stuck with my Friend');
+                        let msg = new Message();
+                        msg.setHeader("STUCKED_TOGETHER");
+                        // Determine which agent is closer to the center of the map
+                        const map_center = { x: Math.floor(this.maps.width / 2), y: Math.floor(this.maps.height / 2) };
+                        const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
+                        const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
+
+                        let content = "";
+                        if (distance_to_center > distance_to_center_friend) {
+                            content = "You have to move away";
+                        } 
+                        else if (distance_to_center < distance_to_center_friend) {
+                            content = "I have to move away";
+                        }
+                        
+                        msg.setContent(content);
+                        msg.setSenderInfo({ name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now() });
+                        await client.say(this.me.friendId, msg);
+                        break;
+                    }
+                    else{
+                        // the enemy is on a delivery point
+                        if (this.me.particelsCarried && deliveryPointsOnPath.some(del => { return del.x === Math.round(agent.x) && del.y === Math.round(agent.y); })) {
+                            // go to second nearest delivery point
+                            let deliveryPoint = this.maps.deliverPoints;
+                            let delivery_no_enemy = deliveryPoint.filter(del => del.x !== Math.round(agent.x) && del.y !== Math.round(agent.y));
+                            let second_nearest_delivery = findNearestDeliveryPoint(this.me, delivery_no_enemy);
+                            console.log('Second nearest delivery point', second_nearest_delivery);
+                            await client.putdown()
+                            await client.pickup()
+                            await this.execute('go_to', second_nearest_delivery.x, second_nearest_delivery.y);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        };
     }
 }
 

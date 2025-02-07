@@ -43,11 +43,11 @@ class Maps {
     }
 
     setValue(x, y, value){
-        this.value_coords[y][x] = value;
+        this.value_coords[x][y] = value;
     }
 
     getVal(x, y){
-        return this.value_coords[y][x];
+        return this.value_coords[x][this.width - y - 1];
     }
 
     /**
@@ -117,16 +117,18 @@ class Maps {
     getPossibleDirection(x, y) {
 
         let directions = [];
-        if (x > 0 && this.getVal(x - 1, y) !== undefined && this.getVal(x - 1, y) !== 0) {
+        x = Math.round(x);
+        y = Math.round(y);
+        if (x > 0 && this.getVal(x - 1, y) !== 0) {
             directions.push({ x: x - 1, y: y, name: "left" });
         }
-        if (x < this.width && this.getVal(x + 1, y) !== undefined && this.getVal(x + 1, y) !== 0) {
+        if (x < this.width && this.getVal(x + 1, y) !== 0) {
             directions.push({ x: x + 1, y: y, name: "right" });
         }
-        if (y > 0 && this.getVal(x, y - 1) !== undefined && this.getVal(x, y - 1) !== 0) {
+        if (y > 0 && this.getVal(x, y - 1) !== 0) {
             directions.push({ x: x, y: y - 1, name: "down" });
         }
-        if (y < this.height && this.getVal(x, y + 1) !== undefined && this.getVal(x, y + 1) !== 0) {
+        if (y < this.height && this.getVal(x, y + 1) !== 0) {
             directions.push({ x: x, y: y + 1, name: "up" });
         }
 

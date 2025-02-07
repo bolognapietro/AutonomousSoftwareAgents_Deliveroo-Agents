@@ -122,20 +122,11 @@ class GoTo extends Plans{
                             const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
                             const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
 
-                            const possible_move = this.maps.getPossibleDirection(this.me.x, this.me.y);
-                            const possibile_move_friend = this.maps.getPossibleDirection(agent.x, agent.y);
-                            
                             let content = "";
-                            if (distance_to_center > distance_to_center_friend && possibile_move_friend.length > 0) {
+                            if (distance_to_center > distance_to_center_friend) {
                                 content = "You have to move away";
                             } 
-                            else if (distance_to_center < distance_to_center_friend && possible_move.length > 0) {
-                                content = "I have to move away";
-                            }
-                            else if (possibile_move_friend.length > 0){
-                                content = "You have to move away";
-                            }
-                            else if (possible_move.length > 0){
+                            else if (distance_to_center < distance_to_center_friend) {
                                 content = "I have to move away";
                             }
                             

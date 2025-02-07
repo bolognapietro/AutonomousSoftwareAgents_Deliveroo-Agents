@@ -26,7 +26,9 @@ function distance( {x:x1, y:y1}, {x:x2, y:y2}) {
  * @returns {Object} The nearest delivery point to the agent.
  */
 function findNearestDeliveryPoint(agent, deliveryPoints) {
-    
+    if (deliveryPoints.length === 1){
+        return deliveryPoints[0];
+    }
     let nearest = deliveryPoints.reduce((prev, curr) => {
         let prevDistance = distance({x: prev.x, y: prev.y}, agent);
         let currDistance = distance({x: curr.x, y: curr.y}, agent);
