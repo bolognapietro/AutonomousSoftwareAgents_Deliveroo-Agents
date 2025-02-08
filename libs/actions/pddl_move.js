@@ -6,7 +6,7 @@ import { onlineSolver } from "@unitn-asa/pddl-client";
 
 // Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
 // Terminal: actions/domain.pddl
-let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/libs/actions/domain.pddl'); 
+let domain = await readFile('libs/actions/domain.pddl'); 
 
 /**
  * Class representing a PDDL move action.
