@@ -175,11 +175,14 @@ class Intention {
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
                     if (plan_res === false){
                         break;
+                    } else{
+                        this.#me.counterFailerReset();
                     }
                     this.#me.notMoving(false)
                     //! this.#me.setCurrentIntention(null)
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
+                    this.#me.counterFailerIncrement();
                     this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', error); // log any errors encountered during the execution of the plan.
                     if (this.#me.particelsCarried){
                         this.log('go to put down')
@@ -191,6 +194,12 @@ class Intention {
                                 this.#me.setCurrentIntention(new_predicate)
                                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps);
                                 const plan_res = await this.#current_plan.execute(...new_predicate); // execute the plan and await its result.
+                                if (plan_res === false){
+                                    break;
+                                } else {
+                                    this.#me.counterFailerReset();
+                                }
+                                this.#me.notMoving(false)
                             }
                         }
                     }

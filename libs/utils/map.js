@@ -28,8 +28,27 @@ class Maps {
         this.map = coords;
         this.deliverPoints = delPoints;
         this.agent_beliefset = new Beliefset();
-        // value_coords full of 0
         this.value_coords = Array.from({ length: this.width }, () => Array.from({ length: this.height }, () => 0));
+    }
+
+    // /**
+    //  * Get the value at a specific coordinate.
+    //  * @param {number} x - The x coordinate.
+    //  * @param {number} y - The y coordinate.
+    //  * @returns {number} The value at the coordinate.
+    //  */
+    // get(x, y) {
+    //     return this.map[x][y];
+    // }
+
+    /**
+     * Set the value at a specific coordinate.
+     * @param {number} x - The x coordinate.
+     * @param {number} y - The y coordinate.
+     * @param {number} value - The value to set (0 or 1).
+     */
+    setValue(x, y, value){
+        this.value_coords[x][y] = value;
     }
 
     /**
@@ -38,14 +57,6 @@ class Maps {
      * @param {number} y - The y coordinate.
      * @returns {number} The value at the coordinate.
      */
-    get(x, y) {
-        return this.map[x][y];
-    }
-
-    setValue(x, y, value){
-        this.value_coords[x][y] = value;
-    }
-
     getVal(x, y){
         return this.value_coords[x][this.width - y - 1];
     }

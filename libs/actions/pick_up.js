@@ -55,8 +55,7 @@ class GoPickUp extends Plans {
         
         // If all actions are completed without the plan being stopped, return true indicating success.
         this.me.particelsCarried = true;
-        // parcelCarriedByMe = true;
-        this.me.previus_position = {x: x, y: y};
+        this.me.prevPos = {x: x, y: y};
         return true; 
     }
 }

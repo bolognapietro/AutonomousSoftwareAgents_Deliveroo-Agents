@@ -56,8 +56,7 @@ class GoPutDown extends Plan {
         
         // If all actions are completed without the plan being stopped, return true indicating success.
         this.me.particelsCarried = false;
-        // this.me.numParticelsCarried -= 1;
-        // parcelCarriedByMe = false;
+        
         return true; 
     }  
 }

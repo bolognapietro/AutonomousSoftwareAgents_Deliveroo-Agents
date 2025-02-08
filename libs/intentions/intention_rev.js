@@ -168,6 +168,7 @@ class IntentionRevision {
         
                 await intention.achieve()
                     .catch(error => {
+                        this.me.counterFailerIncrement();
                         console.log('Failed intention', ...intention.predicate, 'with error:', error)
                     });
         
@@ -177,8 +178,12 @@ class IntentionRevision {
             else {
                 if (Date.now() - this.#lastMoveTime > this.#moveInterval) {
                     // console.log('No intentions, moving randomly');
-                    const movement = this.moveToRandomPos()
-                    this.push(movement);
+                    if (this.me.counterFailer < 2) {
+                        const movement = this.moveToRandomPos()
+                        this.push(movement);
+                    } else{
+                        this.push([['go_to', this.me.prevPos.x, this.me.prevPos.y]]);
+                    }
                     this.#lastMoveTime = Date.now();
                 }
             }
@@ -248,32 +253,6 @@ class IntentionRevision {
         else {
             return [['go_to', selectedPosition[0], selectedPosition[1]]];
         }
-    }
-
-    /**
-     * Checks for nearby parcels.
-     * @returns {boolean} True if a parcel is found, false otherwise.
-     */
-    checkForParcels() {
-        const parcels = this.#me.map_particels;
-        
-        for (let [id, parcel] of parcels.entries()) {
-            if (!parcel.carriedBy && this.isNearby(parcel)) {
-                list_parcel.push(['go_pick_up', parcel.x, parcel.y, id]);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if a parcel is nearby.
-     * @param {Object} parcel - The parcel to check.
-     * @returns {boolean} True if the parcel is nearby, false otherwise.
-     */
-    isNearby(parcel) {
-        const distance = Math.sqrt((parcel.x - this.#me.x) ** 2 + (parcel.y - this.#me.y) ** 2);
-        return distance <= 1; 
     }
 
     /**

@@ -27,6 +27,18 @@ class Me {
     #notMoving;
 
     /**
+     * @private
+     * @type {int}
+     */
+    #counterFailer;
+
+    /**
+     * @private
+     * @type {Object}
+     */
+    #prevPos;
+
+    /**
      * Creates an instance of Me.
      */
     constructor() {
@@ -41,6 +53,8 @@ class Me {
         this.#map_particles = new Map();
         this.#currentIntention = null;
         this.#notMoving = false;
+        this.#counterFailer = 0;
+        this.#prevPos = {x: this.x, y: this.y};
     }
 
     /**
@@ -89,6 +103,52 @@ class Me {
      */
     set currentIntention(predicate) {
         this.#currentIntention = predicate;
+    }
+
+    /**
+     * Set the number of times the agent has failed to move.
+     * @param {int} value
+     */
+    set counterFailer(value) {
+        this.#counterFailer = value;
+    }
+
+    /**
+     * Get the number of times the agent has failed to move.
+     * @returns {int}
+     */
+    get counterFailer() {
+        return this.#counterFailer;
+    }
+
+    /**
+     * Set the previous position of the agent.
+     * @param {Object} value
+     */
+    set prevPos(value) {
+        this.#prevPos = value;
+    }
+
+    /**
+     * Get the previous position of the agent.
+     * @returns {Object}
+    */
+    get prevPos() {
+        return this.#prevPos;
+    }
+
+    /**
+     * Increments the counter for failed moves.
+     */
+    counterFailerIncrement() {
+        this.#counterFailer++;
+    }
+
+    /**
+     * Resets the counter for failed moves.
+     */
+    counterFailerReset() {
+        this.#counterFailer = 0;
     }
 
     /**
