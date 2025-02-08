@@ -2,6 +2,7 @@ import GoPutDown from '../actions/put_down.js'
 import GoPickUp from '../actions/pick_up.js'
 import GoTo from '../actions/go_to.js'
 import PddlMove from '../actions/pddl_move.js'
+import * as fn  from '../utils/support_fn.js';
 
 const usePDDL = false;
 
@@ -180,6 +181,19 @@ class Intention {
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
                     this.log('failed intention', ...this.predicate, 'with plan', planClass.name, 'with error:', error); // log any errors encountered during the execution of the plan.
+                    if (this.#me.particelsCarried){
+                        this.log('go to put down')
+                        let deliveryPoint = fn.findNearestDeliveryPoint(this.#me, this.#maps.deliverPoints);
+                        let new_predicate = ['go_put_down', deliveryPoint.x, deliveryPoint.y];
+                        for (const planClass of planLibrary) {
+                            if (planClass.isApplicableTo(...new_predicate)) {
+                                this.#me.notMoving(true)
+                                this.#me.setCurrentIntention(new_predicate)
+                                this.#current_plan = new planClass(this.#parent, this.#me, this.#maps);
+                                const plan_res = await this.#current_plan.execute(...new_predicate); // execute the plan and await its result.
+                            }
+                        }
+                    }
                 }
             }
         }
