@@ -31,16 +31,6 @@ class Maps {
         this.value_coords = Array.from({ length: this.width }, () => Array.from({ length: this.height }, () => 0));
     }
 
-    // /**
-    //  * Get the value at a specific coordinate.
-    //  * @param {number} x - The x coordinate.
-    //  * @param {number} y - The y coordinate.
-    //  * @returns {number} The value at the coordinate.
-    //  */
-    // get(x, y) {
-    //     return this.map[x][y];
-    // }
-
     /**
      * Set the value at a specific coordinate.
      * @param {number} x - The x coordinate.
@@ -97,7 +87,7 @@ class Maps {
      */
     update_beliefset() {
         this.agent_beliefset = new Beliefset();
-
+        
         for (let x = 0; x < this.width; x++) {
             for (let y = 0; y < this.height; y++) {
                 if (this.map[x][y] === 0 || this.map[x][y] === -1) {

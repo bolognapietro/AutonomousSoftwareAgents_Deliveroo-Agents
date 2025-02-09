@@ -4,8 +4,6 @@ import Message from '../messages/message.js';
 import { readFile } from '../utils/support_fn.js';
 import { onlineSolver } from "@unitn-asa/pddl-client";
 
-// Debug: AutonomousSoftwareAgents_Deliveroo-Agents/actions/domain.pddl
-// Terminal: actions/domain.pddl
 let domain = await readFile('libs/actions/domain.pddl'); 
 
 /**
@@ -215,7 +213,10 @@ class PddlMove extends Plans {
 
             iteration++;
         }
-        if (x == this.me.x && y == this.me.y) return true;
+
+        if (x == this.me.x && y == this.me.y){
+            return true;
+        }
         else {
             const agent_map = this.maps.getAgents();
             for (const agent of agent_map) {
@@ -246,13 +247,13 @@ class PddlMove extends Plans {
                         break;
                     }
                     else{
-                        // the enemy is on a delivery point
+                        // The enemy is on a delivery point
                         if (this.me.particelsCarried && deliveryPointsOnPath.some(del => { return del.x === Math.round(agent.x) && del.y === Math.round(agent.y); })) {
-                            // go to second nearest delivery point
+                            // Go to second nearest delivery point
                             let deliveryPoint = this.maps.deliverPoints;
                             let delivery_no_enemy = deliveryPoint.filter(del => del.x !== Math.round(agent.x) && del.y !== Math.round(agent.y));
                             let second_nearest_delivery = findNearestDeliveryPoint(this.me, delivery_no_enemy);
-                            console.log('Second nearest delivery point', second_nearest_delivery);
+                            
                             await client.putdown()
                             await client.pickup()
                             await this.execute('go_to', second_nearest_delivery.x, second_nearest_delivery.y);

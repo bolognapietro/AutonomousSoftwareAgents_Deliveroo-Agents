@@ -42,12 +42,14 @@ class GoPutDown extends Plan {
         // Check if the plan has been stopped.
         if (this.stopped) 
             throw ['stopped']; // if yes, throw an exception to halt execution.
+        
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
         await this.subIntention(['go_to', x, y], this.me, this.maps); 
 
         // Check if the plan has been stopped after moving.
         if (this.stopped) 
             throw ['stopped']; // If yes, throw an exception to halt execution.
+        
         // Call the `pickup` method on the `client` object to perform the pickup action.
         await client.putdown() 
 

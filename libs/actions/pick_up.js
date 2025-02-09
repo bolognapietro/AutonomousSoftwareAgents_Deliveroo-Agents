@@ -41,8 +41,8 @@ class GoPickUp extends Plans {
     async execute ( go_pick_up, x, y ) {
         // Check if the plan has been stopped.
         if (this.stopped) throw ['stopped']; // if yes, throw an exception to halt execution.
+        
         // Asynchronously execute a sub-intention to move to the coordinates (x, y).
-        // console.log("GoPickUp me: ", this.me);
         await this.subIntention(['go_to', x, y], this.me, this.maps); 
 
         // Check if the plan has been stopped after moving.

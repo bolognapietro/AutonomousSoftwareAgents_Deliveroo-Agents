@@ -93,6 +93,7 @@ class IntentionRevision {
         let nearest_parcel = Number.MAX_VALUE;
         let nearest_delivery_pt = Number.MAX_VALUE;
         
+        // Find the nearest parcel
         for (const option of options) {
             let x = option[1];
             let y = option[2];
@@ -102,6 +103,8 @@ class IntentionRevision {
                 nearest_parcel = current_d;
             }
         }
+
+        // Check if the agent is carrying particles and if a delivery point is closer than the nearest parcel
         if ( this.me.particelsCarried ) {
             let deliveryPoint = fn.findNearestDeliveryPoint(this.me, this.maps.deliverPoints);
             nearest_delivery_pt = fn.distance(deliveryPoint, this.me);
@@ -109,14 +112,16 @@ class IntentionRevision {
                 predicate = ['go_put_down', deliveryPoint.x, deliveryPoint.y];
             }
         }    
+
+        // If no intentions are available, move randomly
         if ( predicate === undefined ) {
             if (Date.now() - this.#lastMoveTime > this.#moveInterval ) {
-                // console.log('No intentions, moving randomly');
                 predicate = this.moveToRandomPos();
                 this.#lastMoveTime = Date.now();
             }
         }
         
+        // If the intention is not already in the queue, push it
         if (predicate !== undefined) {
             // Check if the intention is already in the queue
             if (this.intention_queue.some(intent => intent.predicate.join(' ') === predicate.join(' '))) {
@@ -133,15 +138,14 @@ class IntentionRevision {
             }
         }
         console.log('intentionRevision.push', this.intention_queue.length);
-        //rearrange the queue based on the distance from the agent
+
+        // Rearrange the queue based on the distance from the agent
         this.intention_queue.sort((a, b) => {
             let a_distance = fn.distance({x: a.predicate[1], y: a.predicate[2]}, this.me);
             let b_distance = fn.distance({x: b.predicate[1], y: b.predicate[2]}, this.me);
             return a_distance - b_distance;
         });
 
-        
-        // console.log(this.intention_queue.map(i=>i.predicate));
         console.log('\n');
     }
 
@@ -154,30 +158,33 @@ class IntentionRevision {
             if (this.intention_queue.length > 0) {
                 console.log('intentionRevision.loop', this.intention_queue.map(i => i.predicate));
         
-                // var intention = this.intention_queue[0];
+                // Get the last intention in the queue
                 const intention = this.intention_queue[ this.intention_queue.length - 1 ];
                 console.log('intention:', intention);
-                // var args = intention.get_args();
-                       
+                
+                // Check if the particle is already carried by another agent
                 let id = intention.predicate[2]
                 let p = this.me.getParticleById(id)
                 if ( p && p.carriedBy ) {
                     console.log( 'Skipping intention because no more valid', intention.predicate )
                     continue;
                 }
-        
+                
+                // Execute the intention
                 await intention.achieve()
                     .catch(error => {
                         this.me.counterFailerIncrement();
                         console.log('Failed intention', ...intention.predicate, 'with error:', error)
                     });
-        
-                this.intention_queue.shift(); // Rimuovi l'intenzione usata usando splice()
+                
+                // Remove the intention from the queue
+                this.intention_queue.shift(); 
                 this.#lastMoveTime = Date.now();
             } 
             else {
+                // If no intentions are available, move randomly
                 if (Date.now() - this.#lastMoveTime > this.#moveInterval) {
-                    // console.log('No intentions, moving randomly');
+                    // If the agent has failed to move twice, move to the previous position instead
                     if (this.me.counterFailer < 2) {
                         const movement = this.moveToRandomPos()
                         this.push(movement);
@@ -198,17 +205,17 @@ class IntentionRevision {
     moveToRandomPos() {
         const mapData = this.#maps.map;
         
-        // Step 1: Determine map boundaries
+        // Determine map boundaries
         const minX = Math.min(...mapData.map(p => p.x));
         const maxX = Math.max(...mapData.map(p => p.x));
         const minY = Math.min(...mapData.map(p => p.y));
         const maxY = Math.max(...mapData.map(p => p.y));
 
-        // Step 2: Compute quadrant boundaries
+        // Compute quadrant boundaries
         const midX = Math.floor((minX + maxX) / 2);
         const midY = Math.floor((minY + maxY) / 2);
 
-        // Step 3: Split map into four blocks
+        // Split map into four blocks
         const quadrants = {
             topLeft: mapData.filter(p => p.x <= midX && p.y >= midY),
             topRight: mapData.filter(p => p.x > midX && p.y >= midY),
@@ -216,7 +223,7 @@ class IntentionRevision {
             bottomRight: mapData.filter(p => p.x > midX && p.y < midY),
         };
 
-        // Step 4: Find the central point in each block
+        // Find the central point in each block
         function findCentralPoint(region) {
             if (region.length === 0) return null;
     
@@ -225,11 +232,12 @@ class IntentionRevision {
             const centerY = Math.round(region.reduce((sum, p) => sum + p.y, 0) / region.length);
     
             return region.reduce((best, p) => {
-            const dist = Math.abs(p.x - centerX) + Math.abs(p.y - centerY);
-            return best === null || dist < best.dist ? { ...p, dist } : best;
+                const dist = Math.abs(p.x - centerX) + Math.abs(p.y - centerY);
+                return best === null || dist < best.dist ? { ...p, dist } : best;
             }, null);
         }
         
+        // Generate random positions around the central points
         const available_pos = Object.values(quadrants).map(findCentralPoint).filter(p => p !== null);
         const adjusted_pos = available_pos.map(p => {
             const randomX = p.x + Math.floor(Math.random() * 13) - 6;
@@ -238,6 +246,7 @@ class IntentionRevision {
             return isValid ? { x: randomX, y: randomY } : p;
         });
         
+        // Select a random position
         const random_pos = [];
         for (const p of adjusted_pos) {
             random_pos.push([p.x, p.y]);
@@ -245,6 +254,8 @@ class IntentionRevision {
 
         const randomIndex = Math.floor(Math.random() * random_pos.length);
         const selectedPosition = random_pos[randomIndex];
+
+        // If the agent is already at the selected position, select another one
         if (selectedPosition[0] == this.me.x && selectedPosition[1] == this.me.y) {
             const newIndex = (randomIndex + 1) % random_pos.length;
             const newSelectedPosition = random_pos[newIndex];

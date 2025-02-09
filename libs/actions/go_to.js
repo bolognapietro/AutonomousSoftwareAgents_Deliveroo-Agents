@@ -44,8 +44,9 @@ class GoTo extends Plans{
         this.maps.update_beliefset();
         
         let completed = false;
+
+        // Find the shortest path to the target
         var shortestPath = await this.findShortestPath(this.me.x, this.me.y, targetX, targetY, this.maps);
-        
         if (shortestPath !== null) {
             let actual = { x: this.me.x, y: this.me.y };
             let path = [];
@@ -122,6 +123,7 @@ class GoTo extends Plans{
                             const distance_to_center = Math.abs(map_center.x - this.me.x) + Math.abs(map_center.y - this.me.y);
                             const distance_to_center_friend = Math.abs(map_center.x - agent.x) + Math.abs(map_center.y - agent.y);
 
+                            // Send message to friend agent
                             let content = "";
                             if (distance_to_center > distance_to_center_friend) {
                                 content = "You have to move away";
@@ -129,20 +131,19 @@ class GoTo extends Plans{
                             else if (distance_to_center < distance_to_center_friend) {
                                 content = "I have to move away";
                             }
-                            
                             msg.setContent(content);
                             msg.setSenderInfo({ name: this.me.name, x: this.me.x, y: this.me.y, points: this.me.score, timestamp: Date.now() });
                             await client.say(this.me.friendId, msg);
                             break;
                         }
                         else{
-                            // the enemy is on a delivery point
+                            // The enemy is on a delivery point
                             if (this.me.particelsCarried && deliveryPointsOnPath.some(del => { return del.x === Math.round(agent.x) && del.y === Math.round(agent.y); })) {
-                                // go to second nearest delivery point
+                                // Go to second nearest delivery point
                                 let deliveryPoint = this.maps.deliverPoints;
                                 let delivery_no_enemy = deliveryPoint.filter(del => del.x !== Math.round(agent.x) && del.y !== Math.round(agent.y));
                                 let second_nearest_delivery = findNearestDeliveryPoint(this.me, delivery_no_enemy);
-                                console.log('Second nearest delivery point', second_nearest_delivery);
+                                                                
                                 await client.putdown()
                                 await client.pickup()
                                 await this.execute('go_to', second_nearest_delivery.x, second_nearest_delivery.y);
@@ -173,19 +174,18 @@ class GoTo extends Plans{
         const queue = [{ x: agentX, y: agentY, moves: [] }];
         const visited = new Set();
 
+        // BFS to find the shortest path to the target
         while (queue.length > 0) {
             const { x, y, moves } = queue.shift();
             if (x === targetX && y === targetY) {
-                // Hai trovato la particella. Restituisci la sequenza di mosse.
-                // console.log("Trovata particella: ", moves);
                 return moves;
             }
 
-            // Se la posizione è già stata visitata, passa alla prossima iterazione
+            // If the position has already been visited, skip it
             if (visited.has(`${x},${y}`)) continue;
             visited.add(`${x},${y}`);
 
-            // Espandi i vicini validi
+            // Expand the current position to its neighbors
             const neighbors = this.getValidNeighbors(x, y, map);
             for (const neighbor of neighbors) {
                 const { newX, newY, move } = neighbor;
@@ -194,7 +194,7 @@ class GoTo extends Plans{
             }
         }
 
-        // Se non è possibile raggiungere la particella, restituisci null
+        // If is not possible to reach the target, return null
         return null;
     }
 

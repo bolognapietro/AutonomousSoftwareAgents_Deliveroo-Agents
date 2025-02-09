@@ -15,7 +15,8 @@ import {distance} from '../utils/support_fn.js';
  * @returns {Promise<void>} - A promise that resolves when the message handling is complete.
  */
 async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map) {
-
+    
+    // Message handler for the 'HANDSHAKE' header
     if (msg.header == 'HANDSHAKE') {
         // If the agent is the SLAVE and the message content is 'attacchiamo?' then set the friend_id and send a message to the MASTER
         if (!myAgent.me.master && msg.content == 'attacchiamo?') {
@@ -35,12 +36,13 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
         }
     }
 
+    // Message handler for the 'INFO_PARCELS' header
     if (msg.header === 'INFO_PARCELS') {
         let new_parcels = msg.content;
         if (msg.senderInfo.name != myAgent.me.name && !myAgent.me.notMoving) {
             const seenParcels = myAgent.get_parcerls_to_pickup();
             
-            // order new_parcels by distance from agent
+            // Order new_parcels by distance from agent
             new_parcels.sort((a, b) => distance(myAgent.me, a) - distance(myAgent.me, b)); 
 
             for (const parcel of new_parcels) {
@@ -54,6 +56,7 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
         }
     }
 
+    // Message handler for the 'INFO_AGENT' header
     if (msg.header === 'INFO_AGENTS') {
         let perceived_agents = msg.content;
         for (const agent of perceived_agents) {
@@ -64,13 +67,18 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
         }
     }
 
+    // Message handler for the 'STUCKED_TOGETHER' header
     if (msg.header === "STUCKED_TOGETHER") {
         console.log("-------------------- \n I'm stucked together with " + msg.senderInfo.name )
         console.log("\n\tCONTENT: " + msg.content   + "\n --------------------");
         let content = msg.content
-        // let infos = msg.content.intention
+
+        // If the message content is 'You have to move away'
         if (content == "You have to move away") {
+            // Check if the agent can move to a new position
             const possible_move = myAgent.maps.getPossibleDirection(myAgent.me.x, myAgent.me.y);
+            
+            // If the agent cannot move to a new position, send a message to the friend, otherwise move to a random position 
             if (possible_move.length == 0) {
                 let msg = new Message();
                 msg.setHeader("STUCKED_TOGETHER");
@@ -87,6 +95,7 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
             }
         }
         else{
+            // If the message content is 'I have to move away', send a message to the friend
             let msg = new Message();
             msg.setHeader("STUCKED_TOGETHER");
             msg.setContent("You have to move away");
@@ -111,9 +120,12 @@ async function handleMsg(id, name, msg, reply, maps, client, myAgent, agents_map
  * @returns {Array} An array containing the action 'go_to' and the coordinates [x, y] to move the agent to.
  */
 function simpleMoveToRandomPos(myAgent) {
+    // Divide the map into four quadrants and select a random position in one of the quadrants
     const random_pos = [[myAgent.maps.width/4, myAgent.maps.width/4], [myAgent.maps.width/4, 3*myAgent.maps.width/4], [3*myAgent.maps.width/4, myAgent.maps.width/4], [3*myAgent.maps.width/4, 3*myAgent.maps.width/4]];
     const randomIndex = Math.floor(Math.random() * random_pos.length);
     const selectedPosition = random_pos[randomIndex];
+
+    // If the agent is already at the selected position, move to the next position in the list
     if (selectedPosition[0] == myAgent.me.x && selectedPosition[1] == myAgent.me.y) {
         const newIndex = (randomIndex + 1) % random_pos.length;
         const newSelectedPosition = random_pos[newIndex];

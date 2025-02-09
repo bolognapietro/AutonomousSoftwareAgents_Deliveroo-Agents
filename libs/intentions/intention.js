@@ -6,6 +6,7 @@ import * as fn  from '../utils/support_fn.js';
 
 const usePDDL = false;
 
+// The plan library contains the plan classes that can be used to achieve the intention.
 const planLibrary = []
 
 if (usePDDL) {
@@ -154,22 +155,21 @@ class Intention {
         if (this.#started)
             return this;
         else
-            this.#started = true; // mark the intention as started to block subsequent starts.
+            this.#started = true;
     
         // Iterate through each plan class available in the planLibrary.
         for (const planClass of planLibrary) {
-
-            // console.log('prova ', ...this.predicate)
             // If the intention has been stopped, throw an exception indicating the intention was stopped.
             if (this.stopped) throw ['stopped intention', ...this.predicate];
     
             // Check if the current plan class is applicable to the current intention's predicate.
             if (planClass.isApplicableTo(...this.predicate)) {
-                // console.log('PROVA SU PROVA ', this_me, planClass.name)
+                
                 this.#me.notMoving(true)
                 this.#me.setCurrentIntention(this.predicate)
                 this.#current_plan = new planClass(this.#parent, this.#me, this.#maps); // instantiate the plan class with the parent of the intention.
                 this.log('achieving intention', ...this.predicate, 'with plan', planClass.name); // log the start of achieving the intention with the specific plan.
+                
                 try {
                     const plan_res = await this.#current_plan.execute(...this.predicate); // execute the plan and await its result.
                     this.log('successful intention', ...this.predicate, 'with plan', planClass.name, 'with result:', plan_res); // log the successful completion of the intention with the result.
@@ -179,7 +179,7 @@ class Intention {
                         this.#me.counterFailerReset();
                     }
                     this.#me.notMoving(false)
-                    //! this.#me.setCurrentIntention(null)
+                    
                     return plan_res; // return the result of the plan execution.
                 } catch (error) {
                     this.#me.counterFailerIncrement();
