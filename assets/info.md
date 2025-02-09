@@ -1,1 +1,0 @@
-Put in this folder the images for the README.md
