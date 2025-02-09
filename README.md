@@ -22,8 +22,8 @@
 -   [Contacts](#contacts)
 
 # Project Overview
-<p align="center">
-  <img src="assets/introduction.gif" style="display: block; margin: 0 auto; width: 500px;">
+<p align="center" text-align="center">
+  <img width="75%" src="assets/introduction.gif">
 </p>
 This project focuses on developing autonomous agents for the Deliveroo game, where agents collect and deliver parcels to designated points to earn points. The agents are designed using a **Belief-Desire-Intention (BDI)** architecture, which allows them to perceive their environment, form goals, plan their actions, and continuously adapt to dynamic conditions.
 
