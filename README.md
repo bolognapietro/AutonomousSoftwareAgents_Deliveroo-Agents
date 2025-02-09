@@ -31,14 +31,14 @@ The project consists of two parts:
 
 The agent's performance is evaluated across multiple levels, with the results available in `documentation/results.md`.
 
-## Agent Structures
+## 1. Agent Structures
 
 Two main structures, `Me` and `Map`, are used to manage the agent’s state and environment:
 
 - **Me**: Represents the agent's state and holds information like position, score, whether the agent is carrying a parcel, and its intentions.
 - **Map**: Represents the environment, providing information about the layout, reachable tiles, delivery points, and any known parcel locations.
 
-## Agent Belief System
+## 2. Agent Belief System
 
 The agent continuously updates its knowledge through interactions with the environment. The key components of this belief system include:
 
@@ -46,7 +46,7 @@ The agent continuously updates its knowledge through interactions with the envir
 - **Parcel Sensing**: Detects available parcels, prioritizes them for pickup based on proximity, and shares this information with teammates.
 - **Agent Sensing**: Detects other agents and updates their positions, helping with coordination and conflict avoidance.
 
-## Intention Loop
+## 3. Intention Loop
 
 The agent operates within the BDI model, continuously evaluating and acting on its intentions. The agent prioritizes:
 1. **Picking up parcels**.
@@ -55,14 +55,14 @@ The agent operates within the BDI model, continuously evaluating and acting on i
 
 If the agent fails to execute an intention, it retries or drops the parcel, and after multiple failures, it returns to its previous position.
 
-## Planning
+## 4. Planning
 
 The agent uses two main approaches for pathfinding:
 
 - **BFS (Breadth-First Search)**: Finds the shortest path to a destination in an unweighted grid, ensuring the agent can move efficiently through the environment.
 - **PDDL (Planning Domain Definition Language)**: Generates a more sophisticated movement plan based on predefined domain knowledge. However, it faces latency issues due to the need for an online solver.
 
-## Communication
+## 5. Communication
 
 In multi-agent scenarios, communication is key. Agents exchange information on their positions and the locations of parcels. They use a handshake protocol to establish a connection and coordinate their actions. Moreover, when agents block each other, a conflict resolution system ensures that one agent moves out of the way to allow the other to continue.
 
@@ -93,11 +93,11 @@ When agents block each other, the `STUCKED_TOGETHER` message is used to resolve 
 </p>
 
 
-## Results
+## 6. Results
 
 The agents were tested on both single-agent and multi-agent levels in 5-minute gameplay sessions. Results, including performance data and comparisons across levels, are available in ```documentation/results.md```.
 
-## Conclusion and Future Improvements
+## 7. Conclusion and Future Improvements
 
 The autonomous agent system successfully completed tasks in dynamic environments, adapting its strategies using the BDI architecture. The BFS pathfinding method was effective, while the PDDL planner faced challenges due to latency. Future improvements will focus on enhancing multi-agent coordination, optimizing pathfinding, and exploring learning-based methods to improve adaptability and performance in more complex, real-world scenarios.
 
