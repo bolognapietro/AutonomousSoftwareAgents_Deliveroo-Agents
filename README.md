@@ -22,7 +22,9 @@
 -   [Contacts](#contacts)
 
 # Project Overview
-
+<p align="center">
+  <img src="assets/introduction.png" style="display: block; margin: 0 auto; width: 500px;">
+</p>
 This project focuses on developing autonomous agents for the Deliveroo game, where agents collect and deliver parcels to designated points to earn points. The agents are designed using a **Belief-Desire-Intention (BDI)** architecture, which allows them to perceive their environment, form goals, plan their actions, and continuously adapt to dynamic conditions.
 
 The project consists of two parts:
@@ -74,8 +76,8 @@ To begin cooperation, agents establish a connection through a simple handshake:
 - Both agents set their `friend_id` to maintain a persistent link for further communication.
 
 This handshake ensures both agents are synchronized and ready to collaborate.
-<p style="text-align: center;">
-  <img src="assets/handshake.jpg" style="max-width: 75%; height: auto;"/>
+<p align="center">
+  <img src="assets/handshake.jpg" style="display: block; margin: 0 auto; width: 500px;">
 </p>
 
 ### Sharing Environmental Information
@@ -87,11 +89,12 @@ Once connected, agents share critical environmental data, which helps them make 
 When agents block each other, the `STUCKED_TOGETHER` message is used to resolve the issue:
 - The agent closer to the center of the map sends the message to the other agent, determining who should move.
 - The recipient checks if it can move and clears the obstruction. If not, the other agent moves.
-<p style="text-align: center;">
-  <img src="assets/stucked_case1.jpg" style="max-width: 73.8%; height: auto;" />
-  <img src="assets/stucked_case2.jpg" style="max-width: 100%; height: auto;" />
+<p align="center">
+  <img src="assets/stucked_case1.jpg" style="display: block; margin: 0 auto; width: 500px;">
 </p>
-
+<p align="center">
+  <img src="assets/stucked_case2.jpg" style="display: block; margin: 0 auto; width: 500px;">
+</p>
 
 ## 6. Results
 
@@ -167,6 +170,9 @@ Marina Segala - [marina.segala@studenti.unitn.it](mailto:marina.segala@studenti.
 \
 Pietro Bologna - [pietro.bologna@studenti.unitn.it](mailto:pietro.bologna@studenti.unitn.it)
 
-<p style="text-align: left;">
-  <img src="assets/unitn_logo.png" style="max-width: 50%; height: auto;" />
-</p>
+
+<div>
+    <a href="https://www.unitn.it/">
+        <img src="https://ing-gest.disi.unitn.it/wp-content/uploads/2022/11/marchio_disi_bianco_vert_eng-1024x295.png" width="400px">
+    </a>
+</div>
