@@ -3,10 +3,9 @@
     <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript"/>
     <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white" alt="Node.js"/>
     <img src="https://img.shields.io/badge/PDDL-005F8F?style=flat&logo=prolog&logoColor=white" alt="PDDL"/>
-    <img src="https://img.shields.io/badge/WebSockets-009688?style=flat&logo=websocket&logoColor=white" alt="WebSockets"/>
 </div>
 
-# Table of contents
+# Table of Contents
 -   [Project Overview](#project-overview)
     - [Agent Structures](#agent-structures)
     - [Agent Belief System](#agent-belief-system)
