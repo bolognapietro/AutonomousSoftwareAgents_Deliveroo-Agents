@@ -4,7 +4,7 @@ import Message from '../messages/message.js';
 import { readFile } from '../utils/support_fn.js';
 import { onlineSolver } from "@unitn-asa/pddl-client";
 
-let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/libs/actions/domain.pddl'); 
+let domain = await readFile('libs/actions/domain.pddl'); 
 
 /**
  * Class representing a PDDL move action.
