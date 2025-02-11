@@ -4,7 +4,7 @@ import Message from '../messages/message.js';
 import { readFile } from '../utils/support_fn.js';
 import { onlineSolver } from "@unitn-asa/pddl-client";
 
-let domain = await readFile('libs/actions/domain.pddl'); 
+let domain = await readFile('AutonomousSoftwareAgents_Deliveroo-Agents/libs/actions/domain.pddl'); 
 
 /**
  * Class representing a PDDL move action.
@@ -165,6 +165,16 @@ class PddlMove extends Plans {
             }
         }
 
+        // Find delivery points on the path
+        let deliveryPointsOnPath = [];
+        for (let del of this.maps.deliverPoints) {
+            for (let p of path) {
+                if (del.x == p.x && del.y == p.y && p != [del.x, del.y] && (del.x != this.me.x || del.y != this.me.y)) {
+                    deliveryPointsOnPath.push(del);
+                }
+            }
+        }
+
         // Start moving the agent to the target position
         let iteration = 0;
         while (iteration < pddlPlan.length) {
@@ -173,6 +183,10 @@ class PddlMove extends Plans {
             if (parcelsOnPath.some(par => { return par[1].x === this.me.x && par[1].y === this.me.y; })) {
                 console.log('parcelsOnPath');
                 await client.pickup();
+            }
+            // Put down parcels if at delivery points
+            if (deliveryPointsOnPath.some(del => { return del.x === Math.round(this.me.x) && del.y === Math.round(this.me.y); })) {
+                await client.putdown();
             }
 
             // Get the next coordinate to move to
