@@ -4,7 +4,7 @@ import GoTo from '../actions/go_to.js'
 import PddlMove from '../actions/pddl_move.js'
 import * as fn  from '../utils/support_fn.js';
 
-const usePDDL = true;
+const usePDDL = false;
 
 // The plan library contains the plan classes that can be used to achieve the intention.
 const planLibrary = []
